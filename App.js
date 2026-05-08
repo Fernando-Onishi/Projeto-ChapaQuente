@@ -9,7 +9,7 @@ export default function App() {
     </View>
   );
 }
-
+//comentarios
 const styles = StyleSheet.create({
   container: {
     flex: 1,
