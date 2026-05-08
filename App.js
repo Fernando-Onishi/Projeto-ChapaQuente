@@ -10,6 +10,7 @@ export default function App() {
   );
 }
 //comentarios
+//comentarios
 const styles = StyleSheet.create({
   container: {
     flex: 1,
