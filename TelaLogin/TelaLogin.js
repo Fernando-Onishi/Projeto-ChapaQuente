@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { StyleSheet, View, Text, Image, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, SafeAreaView, Alert } from 'react-native';
+import { StyleSheet, View, Text, Image, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, SafeAreaView } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { signInWithEmailAndPassword } from 'firebase/auth';
@@ -9,14 +9,16 @@ export default function TelaLogin({ navigation }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [validationError, setValidationError] = useState('');
 
   const handleLogin = async () => {
     if (!email.trim() || !password.trim()) {
-      Alert.alert('Atenção', 'Informe e-mail e senha para entrar.');
+      setValidationError('Informe e-mail e senha para entrar.');
       return;
     }
 
     setLoading(true);
+    setValidationError('');
 
     try {
       await signInWithEmailAndPassword(auth, email.trim(), password);
@@ -29,7 +31,7 @@ export default function TelaLogin({ navigation }) {
         : error.code === 'auth/invalid-email'
         ? 'Digite um e-mail válido.'
         : error.message;
-      Alert.alert('Erro ao entrar', message);
+      setValidationError(message);
     } finally {
       setLoading(false);
     }
@@ -83,6 +85,7 @@ export default function TelaLogin({ navigation }) {
               <TouchableOpacity style={styles.button} activeOpacity={0.85} onPress={handleLogin}>
                 <Text style={styles.buttonText}>{loading ? 'Entrando...' : 'Entrar'}</Text>
               </TouchableOpacity>
+              {validationError ? <Text style={styles.errorText}>{validationError}</Text> : null}
             </View>
 
             <Text style={styles.smallText}>
@@ -192,6 +195,12 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
     zIndex: 10,
   },
+  errorText: {
+    color: '#ff4d4d',
+    fontSize: 13,
+    marginTop: 10,
+    textAlign: 'center',
+  },
   footerDivider: {
     height: 1,
     backgroundColor: '#FDE3CF',
@@ -204,7 +213,7 @@ const styles = StyleSheet.create({
   footerText: {
     color: '#ffe6ce',
     fontSize: 12,
-    textAlign: 'left',
+    textAlign: 'center',
     lineHeight: 18,
     marginBottom: 22,
     alignSelf: 'stretch',
