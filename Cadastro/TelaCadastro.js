@@ -1,9 +1,48 @@
-import React from 'react';
-import { StyleSheet, View, Text, Image, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, SafeAreaView } from 'react-native';
+import React, { useState } from 'react';
+import { StyleSheet, View, Text, Image, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, SafeAreaView, Alert } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+import { createUserWithEmailAndPassword } from 'firebase/auth';
+import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { auth, db } from '../Config/FireBaseConfig';
 
-export default function TelaCadastro() {
+export default function TelaCadastro({ navigation }) {
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const handleRegister = async () => {
+    if (!name.trim() || !email.trim() || !password.trim()) {
+      Alert.alert('Atenção', 'Preencha todos os campos para continuar.');
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const userCredential = await createUserWithEmailAndPassword(auth, email.trim(), password);
+      await setDoc(doc(db, 'users', userCredential.user.uid), {
+        name: name.trim(),
+        email: email.trim(),
+        createdAt: serverTimestamp(),
+      });
+      Alert.alert('Cadastro realizado', 'Seu usuário foi criado com sucesso.');
+      navigation.navigate('Login');
+    } catch (error) {
+      const message = error.code === 'auth/email-already-in-use'
+        ? 'Este e-mail já está em uso.'
+        : error.code === 'auth/invalid-email'
+        ? 'Digite um e-mail válido.'
+        : error.code === 'auth/weak-password'
+        ? 'A senha deve ter pelo menos 6 caracteres.'
+        : error.message;
+      Alert.alert('Erro ao cadastrar', message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <LinearGradient colors={["#632713", "#C94F27"]} style={styles.container}>
       <SafeAreaView style={styles.safeArea}>
@@ -31,6 +70,8 @@ export default function TelaCadastro() {
                   placeholder="Nome"
                   placeholderTextColor="#8e6f53"
                   autoCapitalize="words"
+                  value={name}
+                  onChangeText={setName}
                 />
               </View>
 
@@ -42,6 +83,8 @@ export default function TelaCadastro() {
                   placeholderTextColor="#8e6f53"
                   keyboardType="email-address"
                   autoCapitalize="none"
+                  value={email}
+                  onChangeText={setEmail}
                 />
               </View>
 
@@ -52,11 +95,13 @@ export default function TelaCadastro() {
                   placeholder="Senha"
                   placeholderTextColor="#8e6f53"
                   secureTextEntry
+                  value={password}
+                  onChangeText={setPassword}
                 />
               </View>
 
-              <TouchableOpacity style={styles.button} activeOpacity={0.85}>
-                <Text style={styles.buttonText}>Cadastrar</Text>
+              <TouchableOpacity style={styles.button} activeOpacity={0.85} onPress={handleRegister}>
+                <Text style={styles.buttonText}>{loading ? 'Cadastrando...' : 'Cadastrar'}</Text>
               </TouchableOpacity>
             </View>
           </View>
