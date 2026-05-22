@@ -1,9 +1,40 @@
-import React from 'react';
-import { StyleSheet, View, Text, Image, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, SafeAreaView } from 'react-native';
+import React, { useState } from 'react';
+import { StyleSheet, View, Text, Image, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, SafeAreaView, Alert } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+import { signInWithEmailAndPassword } from 'firebase/auth';
+import { auth } from '../Config/FireBaseConfig';
 
 export default function TelaLogin({ navigation }) {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const handleLogin = async () => {
+    if (!email.trim() || !password.trim()) {
+      Alert.alert('Atenção', 'Informe e-mail e senha para entrar.');
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      await signInWithEmailAndPassword(auth, email.trim(), password);
+      navigation.replace('Home');
+    } catch (error) {
+      const message = error.code === 'auth/user-not-found'
+        ? 'Usuário não encontrado.'
+        : error.code === 'auth/wrong-password'
+        ? 'E-mail ou senha incorretos.'
+        : error.code === 'auth/invalid-email'
+        ? 'Digite um e-mail válido.'
+        : error.message;
+      Alert.alert('Erro ao entrar', message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <LinearGradient colors={["#632713", "#C94F27"]} style={styles.container}>
       <SafeAreaView style={styles.safeArea}>
@@ -32,6 +63,8 @@ export default function TelaLogin({ navigation }) {
                   placeholderTextColor="#8e6f53"
                   keyboardType="email-address"
                   autoCapitalize="none"
+                  value={email}
+                  onChangeText={setEmail}
                 />
               </View>
 
@@ -42,11 +75,13 @@ export default function TelaLogin({ navigation }) {
                   placeholder="Senha"
                   placeholderTextColor="#8e6f53"
                   secureTextEntry
+                  value={password}
+                  onChangeText={setPassword}
                 />
               </View>
 
-              <TouchableOpacity style={styles.button} activeOpacity={0.85}>
-                <Text style={styles.buttonText}>Entrar</Text>
+              <TouchableOpacity style={styles.button} activeOpacity={0.85} onPress={handleLogin}>
+                <Text style={styles.buttonText}>{loading ? 'Entrando...' : 'Entrar'}</Text>
               </TouchableOpacity>
             </View>
 
