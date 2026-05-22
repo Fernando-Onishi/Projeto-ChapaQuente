@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { View, StyleSheet, Text, TouchableOpacity, ScrollView, FlatList, Dimensions, Image } from 'react-native';
+import { View, StyleSheet, Text, TouchableOpacity, ScrollView, FlatList, Dimensions, Image, Alert } from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
-import { onAuthStateChanged } from 'firebase/auth';
+import { signOut, onAuthStateChanged } from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
 import { auth, db } from '../Config/FireBaseConfig';
 
@@ -9,16 +9,16 @@ export default function TelaHome({ navigation }) {
   const [userName, setUserName] = useState('Usuário');
 
   const produtos = [
-    { id: '1', nome: 'Giga Planet', desc: 'Lanche premium com ingredientes especiais', imagem: require('../assets/hamburguer.png'), preco: '48,00' },
-    { id: '2', nome: 'Supernova', desc: 'Lanche saboroso com toque especial',          imagem: require('../assets/hamburguer1.png'), preco: '38,00' },
-    { id: '3', nome: 'Cheese Storm', desc: 'Queijo derretido em explosão de sabor',    imagem: require('../assets/hamburguer2.png'), preco: '48,00' },
-    { id: '4', nome: 'Mega Melt', desc: 'Sanduíche gratinado com queijo extra',        imagem: require('../assets/hamburguer3.png'), preco: '42,00' },
-    { id: '5', nome: 'Crispy Roll', desc: 'Crocrante por fora e macio por dentro',     imagem: require('../assets/hamburguer4.png'), preco: '36,00' },
-    { id: '6', nome: 'Spicy Burst', desc: 'Pimenta na medida certa para aquecer',      imagem: require('../assets/hamburguer5.png'), preco: '44,00', precoAntigo: '52,00' },
-    { id: '7', nome: 'Bacon Bliss', desc: 'Bacon crocante com sabor irresistível',     imagem: require('../assets/hamburguer6.png'), preco: '40,00', precoAntigo: '48,00' },
-    { id: '8', nome: 'Veggie Delight', desc: 'Opção vegetariana leve e colorida',      imagem: require('../assets/sorvete.png'), preco: '34,00', precoAntigo: '42,00' },
-    { id: '9', nome: 'Double Trouble', desc: 'Duplo hambúrguer para matar a fome',     imagem: require('../assets/brownie.png'), preco: '50,00', precoAntigo: '60,00' },
-    { id: '10', nome: 'Mini Snack', desc: 'Lanchinho rápido e saboroso',               imagem: require('../assets/sorvete1.png'), preco: '30,00', precoAntigo: '35,00' },
+    { id: '1', nome: 'Giga Planet', imagem: require('../assets/hamburguer.png'), preco: '48,00' },
+    { id: '2', nome: 'Supernova', imagem: require('../assets/hamburguer1.png'), preco: '38,00' },
+    { id: '3', nome: 'Cheese Storm', imagem: require('../assets/hamburguer2.png'), preco: '48,00' },
+    { id: '4', nome: 'Mega Melt', imagem: require('../assets/hamburguer3.png'), preco: '42,00' },
+    { id: '5', nome: 'Crispy Roll', imagem: require('../assets/hamburguer4.png'), preco: '36,00' },
+    { id: '6', nome: 'Spicy Burst', imagem: require('../assets/hamburguer5.png'), preco: '44,00', precoAntigo: '52,00' },
+    { id: '7', nome: 'Bacon Bliss', imagem: require('../assets/hamburguer6.png'), preco: '40,00', precoAntigo: '48,00' },
+    { id: '8', nome: 'Veggie Delight', imagem: require('../assets/sorvete.png'), preco: '34,00', precoAntigo: '42,00' },
+    { id: '9', nome: 'Double Trouble', imagem: require('../assets/brownie.png'), preco: '50,00', precoAntigo: '60,00' },
+    { id: '10', nome: 'Mini Snack', imagem: require('../assets/sorvete1.png'), preco: '30,00', precoAntigo: '35,00' },
   ];
   const featured = produtos.slice(5, 10);
 
@@ -63,7 +63,15 @@ export default function TelaHome({ navigation }) {
   const userNameDisplay = userName ? capitalizeFirst(userName) : 'Usuário';
   const userInitial = userNameDisplay ? userNameDisplay.charAt(0).toUpperCase() : 'U';
 
-  // ERRO CORRIGIDO 1: Função para gerenciar imagens locais e strings vazias sem quebrar
+  const handleSignOut = async () => {
+    try {
+      await signOut(auth);
+      navigation.replace('Login');
+    } catch (error) {
+      Alert.alert('Erro', 'Não foi possível sair no momento. Tente novamente.');
+    }
+  };
+
   const renderizarImagem = (item) => {
     if (!item.imagem) return null;
     const source = typeof item.imagem === 'string' ? { uri: item.imagem } : item.imagem;
@@ -73,10 +81,15 @@ export default function TelaHome({ navigation }) {
   return (
     <ScrollView style={styles.page} contentContainerStyle={styles.content}>
       <View style={styles.header}>
-        <View style={styles.userCircle}>
-          <Text style={styles.userInitial}>{userInitial}</Text>
+        <View style={styles.headerLeft}>
+          <View style={styles.userCircle}>
+            <Text style={styles.userInitial}>{userInitial}</Text>
+          </View>
+          <Text style={styles.headerTitle}>{userNameDisplay}</Text>
         </View>
-        <Text style={styles.headerTitle}>{userNameDisplay}</Text>
+        <TouchableOpacity style={styles.logoutButton} activeOpacity={0.7} onPress={handleSignOut}>
+          <Text style={styles.logoutText}>Sair</Text>
+        </TouchableOpacity>
       </View>
 
       <View style={[styles.bannerCard, { width, marginLeft: -20, marginRight: -20 }]}> 
@@ -100,7 +113,7 @@ export default function TelaHome({ navigation }) {
               <TouchableOpacity style={styles.favoriteButton} onPress={() => toggleFavorite(item.id)}>
                 <AntDesign
                   name="heart"
-                  size={24}
+                  size={18}
                   color={favorites.includes(item.id) ? '#e0245e' : 'black'}
                 />
               </TouchableOpacity>
@@ -128,7 +141,7 @@ export default function TelaHome({ navigation }) {
               <TouchableOpacity style={styles.favoriteButton} onPress={() => toggleFavorite(item.id)}>
                 <AntDesign
                   name="heart"
-                  size={24}
+                  size={18}
                   color={favorites.includes(item.id) ? '#e0245e' : 'black'}
                 />
               </TouchableOpacity>
@@ -153,10 +166,6 @@ export default function TelaHome({ navigation }) {
         <TouchableOpacity
           style={styles.bottomButtonPrimary}
           activeOpacity={0.85}
-          onPress={() => {
-            // TODO: conectar com a tela de adicionar produto / TelaProduto
-            // navigation.navigate('TelaProduto');
-          }}
         >
           <Text style={styles.bottomTextPrimary}>+</Text>
         </TouchableOpacity>
@@ -174,163 +183,119 @@ const styles = StyleSheet.create({
     backgroundColor: '#fffbf6',
   },
   content: {
-    padding: 20,
     paddingBottom: 100,
+    paddingLeft: 20,
+    paddingRight: 20,
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 18,
+    justifyContent: 'space-between',
+    backgroundColor: '#EC6426',
+    paddingVertical: 20,
+    paddingHorizontal: 20,
+    marginLeft: -20,
+    marginRight: -20,
+    marginBottom: 0,
+  },
+  headerLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   userCircle: {
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: '#fff1e6',
+    backgroundColor: '#fff',
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: '#e7c5b7',
+    borderColor: 'rgba(255,255,255,0.4)',
   },
   userInitial: {
-    color: '#c25b2d',
+    color: '#EC6426',
     fontWeight: '700',
     fontSize: 18,
   },
   headerTitle: {
     marginLeft: 12,
     fontSize: 18,
-    color: '#632713',
+    color: '#fff',
     fontWeight: '700',
   },
   bannerCard: {
     width: '100%',
     overflow: 'hidden',
     marginBottom: 24,
+    marginTop: -33,
+    marginLeft: -20,
+    marginRight: -20,
   },
   bannerImage: {
     width: '100%',
     aspectRatio: 16 / 9,
   },
-  bannerText: {
-    flex: 1,
-    paddingRight: 16,
-  },
-  bannerLabel: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '700',
-    marginBottom: 4,
-  },
-  bannerSubtitle: {
-    color: '#fff',
-    fontSize: 14,
-    marginBottom: 8,
-  },
-  bannerPrice: {
-    color: '#fff7e7',
-    fontSize: 12,
-    marginBottom: 4,
-  },
-  bannerValue: {
-    color: '#fff',
-    fontSize: 28,
-    fontWeight: '900',
-    marginBottom: 12,
-  },
-  bannerButton: {
-    backgroundColor: '#fff',
-    borderRadius: 999,
-    paddingVertical: 8,
-    paddingHorizontal: 14,
-    alignSelf: 'flex-start',
-  },
-  bannerButtonText: {
-    color: '#c25b2d',
-    fontWeight: '700',
-  },
-  bannerImagePlaceholder: {
-    width: 110,
-    height: 110,
-    backgroundColor: '#ffd8b6',
-    borderRadius: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: '#f2c9a1',
-  },
   sectionTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#632713',
+    fontSize: 24,
+    fontWeight: '900',
+    color: '#EC6426',
     marginBottom: 12,
-  },
-  gridRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 18,
+    fontFamily: 'Luckiest Guy',
   },
   card: {
     flex: 1,
     marginRight: 10,
-    backgroundColor: '#fff7f0',
+    backgroundColor: '#FAE3D0',
     borderRadius: 28,
     padding: 0,
     borderWidth: 0,
     overflow: 'hidden',
   },
   featuredCard: {
-    backgroundColor: '#fff4e9',
+    backgroundColor: '#FAE3D0',
   },
   imagePlaceholder: {
     width: '100%',
     aspectRatio: 1,
     overflow: 'hidden',
-    backgroundColor: '#f8f0e7',
-  },
-  placeholderText: {
-    color: '#b68369',
-    fontSize: 13,
   },
   cardLabel: {
-    fontSize: 18,
+    fontSize: 14,
     color: '#231815',
     fontWeight: '900',
-    marginBottom: 12,
+    marginBottom: 6,
     textTransform: 'uppercase',
-    paddingHorizontal: 14,
-    paddingTop: 14,
+    paddingHorizontal: 8,
+    paddingTop: 15,
+    fontFamily: 'Luckiest Guy',
   },
   cardPriceLarge: {
-    fontSize: 24,
+    fontSize: 16,
     color: '#ff8b38',
     fontWeight: '900',
-    marginTop: 14,
-    paddingHorizontal: 14,
-  },
-  cardPrice: {
-    fontSize: 13,
-    color: '#8e6f53',
-    paddingHorizontal: 14,
+    marginTop: 8,
+    paddingHorizontal: 8,
+    fontFamily: 'Lilita One',
   },
   featuredInfo: {
     flexDirection: 'row',
     alignItems: 'flex-end',
-    paddingHorizontal: 14,
-    marginTop: 12,
+    paddingHorizontal: 8,
+    marginTop: 6,
   },
   featuredPriceOld: {
-    fontSize: 12,
+    fontSize: 10,
     color: '#9b6c4d',
     textDecorationLine: 'line-through',
-    marginRight: 8,
+    marginRight: 4,
+    fontFamily: 'Lilita One',
   },
   featuredPriceNew: {
-    fontSize: 22,
+    fontSize: 15,
     color: '#ff8b38',
     fontWeight: '900',
+    fontFamily: 'Lilita One',
   },
-  // ERRO CORRIGIDO 5: Adicionado estilo necessário para a tag Image preencher o bloco
   productImage: {
     width: '100%',
     height: '100%',
@@ -341,12 +306,18 @@ const styles = StyleSheet.create({
     right: 8,
     padding: 6,
   },
-  favoriteText: {
-    fontSize: 18,
-    color: '#b68369',
+  logoutButton: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    backgroundColor: '#fff8f2',
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: '#e7c5b7',
   },
-  favoriteActive: {
-    color: '#e0245e',
+  logoutText: {
+    color: '#c25b2d',
+    fontWeight: '700',
+    fontSize: 14,
   },
   bottomBar: {
     position: 'absolute',
@@ -354,7 +325,7 @@ const styles = StyleSheet.create({
     right: 20,
     bottom: 10,
     height: 64,
-    backgroundColor: '#fff',
+    backgroundColor: '#C94F27',
     borderRadius: 32,
     flexDirection: 'row',
     alignItems: 'center',

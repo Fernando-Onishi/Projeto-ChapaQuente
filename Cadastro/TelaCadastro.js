@@ -11,14 +11,16 @@ export default function TelaCadastro({ navigation }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [validationError, setValidationError] = useState('');
 
   const handleRegister = async () => {
     if (!name.trim() || !email.trim() || !password.trim()) {
-      Alert.alert('Atenção', 'Preencha todos os campos para continuar.');
+      setValidationError('Preencha todos os campos para continuar.');
       return;
     }
 
     setLoading(true);
+    setValidationError('');
 
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email.trim(), password);
@@ -28,7 +30,7 @@ export default function TelaCadastro({ navigation }) {
         createdAt: serverTimestamp(),
       });
       Alert.alert('Cadastro realizado', 'Seu usuário foi criado com sucesso.');
-      navigation.navigate('Login');
+      navigation.replace('Home');
     } catch (error) {
       const message = error.code === 'auth/email-already-in-use'
         ? 'Este e-mail já está em uso.'
@@ -37,7 +39,7 @@ export default function TelaCadastro({ navigation }) {
         : error.code === 'auth/weak-password'
         ? 'A senha deve ter pelo menos 6 caracteres.'
         : error.message;
-      Alert.alert('Erro ao cadastrar', message);
+      setValidationError(message);
     } finally {
       setLoading(false);
     }
@@ -103,7 +105,12 @@ export default function TelaCadastro({ navigation }) {
               <TouchableOpacity style={styles.button} activeOpacity={0.85} onPress={handleRegister}>
                 <Text style={styles.buttonText}>{loading ? 'Cadastrando...' : 'Cadastrar'}</Text>
               </TouchableOpacity>
+              {validationError ? <Text style={styles.errorText}>{validationError}</Text> : null}
             </View>
+
+            <TouchableOpacity style={styles.backButton} activeOpacity={0.85} onPress={() => navigation.navigate('Login')}>
+              <Text style={styles.backButtonText}>Voltar para o login</Text>
+            </TouchableOpacity>
           </View>
 
           <View style={styles.footerDivider} />
@@ -187,6 +194,21 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '700',
   },
+  backButton: {
+    marginTop: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    height: 48,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.8)',
+    backgroundColor: 'transparent',
+  },
+  backButtonText: {
+    color: '#fff',
+    fontSize: 15,
+    fontWeight: '700',
+  },
   smallText: {
     color: '#ffe6ce',
     fontSize: 12,
@@ -208,6 +230,12 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
     zIndex: 10,
   },
+  errorText: {
+    color: '#ff4d4d',
+    fontSize: 13,
+    marginTop: 10,
+    textAlign: 'center',
+  },
   footerDivider: {
     height: 1,
     backgroundColor: '#FDE3CF',
@@ -220,7 +248,7 @@ const styles = StyleSheet.create({
   footerText: {
     color: '#ffe6ce',
     fontSize: 12,
-    textAlign: 'left',
+    textAlign: 'center',
     lineHeight: 18,
     marginBottom: 22,
     alignSelf: 'stretch',
