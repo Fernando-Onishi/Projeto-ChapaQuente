@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { StyleSheet, View, Text, Image, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, SafeAreaView, Alert } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import { createUserWithEmailAndPassword } from 'firebase/auth';
+import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
 import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { auth, db } from '../Config/FireBaseConfig';
 
@@ -24,8 +24,10 @@ export default function TelaCadastro({ navigation }) {
 
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email.trim(), password);
+      await updateProfile(userCredential.user, { displayName: name.trim() });
       await setDoc(doc(db, 'users', userCredential.user.uid), {
         name: name.trim(),
+        nome: name.trim(),
         email: email.trim(),
         createdAt: serverTimestamp(),
       });

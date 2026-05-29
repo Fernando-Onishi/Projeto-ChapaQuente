@@ -16,14 +16,14 @@ const PRODUTOS_FAVORITOS = [
     nome: 'Brasa Viva',
     preco: 'R$ 42,00',
     desc: 'Triplo burger bovino grelhado no fogo, bacon crocante e molho barbecue.',
-    imagem: require('../assets/brasa viva.png'),
+    imagem: require('../assets/hamburguer6.png'),
   },
   {
     id: '3',
     nome: 'Fusão Nuclear',
     preco: 'R$ 48,00',
     desc: 'Duplo burger bovino, cheddar derretido em dobro e cebola caramelizada.',
-    imagem: require('../assets/Fusão Nuclear.png'),
+    imagem: require('../assets/hamburguer3.png'),
   },
   {
     id: '4',
@@ -31,7 +31,7 @@ const PRODUTOS_FAVORITOS = [
     preco: 'R$ 16,00',
     precoAntigo: 'R$ 24,00',
     desc: 'Massa cremosa batida com morangos frescos selecionados e pedaços reais da fruta.',
-    imagem: require('../assets/chapa fria.png'),
+    imagem: require('../assets/sorvete.png'),
   },
 ];
 
