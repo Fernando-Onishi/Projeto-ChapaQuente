@@ -9,6 +9,10 @@ import { auth } from './Config/FireBaseConfig';
 import TelaLogin from './TelaLogin/TelaLogin';
 import TelaCadastro from './Cadastro/TelaCadastro';
 import TelaHome from './TelaHome/TelaHome';
+import TelaPerfil from './TelaPerfil/TelaPerfil';
+import TelaFavorito from './TelaFavorito/TelaFavorito';
+import TelaDescricao from './TelaDescricao/TelaDescricao';
+import TelaAdmin from './TelaAdmin/TelaAdmin';
 
 const Stack = createNativeStackNavigator();
 
@@ -65,6 +69,10 @@ export default function App() {
         <Stack.Screen name="Login" component={TelaLogin} />
         <Stack.Screen name="Cadastro" component={TelaCadastro} />
         <Stack.Screen name="Home" component={TelaHome} />
+        <Stack.Screen name="Perfil" component={TelaPerfil} />
+        <Stack.Screen name="TelaFavorito" component={TelaFavorito} />
+        <Stack.Screen name="TelaDescricao" component={TelaDescricao} />
+        <Stack.Screen name="TelaAdmin" component={TelaAdmin} />
       </Stack.Navigator>
       <StatusBar style="light" />
     </NavigationContainer>

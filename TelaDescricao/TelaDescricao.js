@@ -376,9 +376,10 @@ const styles = StyleSheet.create({
   },
   totalBox: {
     backgroundColor: '#EC6426',
-    paddingHorizontal: 12,
+    paddingHorizontal: 25,
     paddingVertical: 8,
     borderRadius: 12,
+    textAlign: 'center'
   },
   totalText: {
     color: '#fff',
