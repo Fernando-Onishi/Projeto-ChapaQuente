@@ -116,117 +116,97 @@ export default function TelaDescricao({ navigation }) {
           </View>
         </View>
 
-        <View style={styles.content}>
-          <View style={styles.titleRow}>
-            <Text style={styles.title}>SUPERNOVA</Text>
-          <ScrollView style={styles.contentScroll} showsVerticalScrollIndicator={false}>
-            <View style={styles.content}>
-              <View style={styles.titleRow}>
-                <Text style={styles.title}>SUPERNOVA</Text>
-            <View style={styles.priceBox}>
-              <Text style={styles.price}>R$38.00</Text>
-            </View>
-          </View>
-
-          <Text style={styles.description}>
-            Pão brioche macio; Hambúrguer artesanal 100% bovino; Queijo cheddar derretido; Alface
-            fresca; Tomate em rodelas; Cebola caramelizada.
-          </Text>
-
-          <View style={styles.optionsTitleRow}>
-            <Text style={styles.optionsTitle}>Escolha o produto</Text>
-            <Text style={styles.optionsOptional}>Opcional</Text>
-          </View>
-
-          <View style={styles.optionsList}>
-            {OPTIONALS.map((item) => {
-              const isSelected = selectedOptions.includes(item.id);
-              return (
-                <View style={styles.optionCard} key={item.id}>
-                  <Image source={item.imagem} style={styles.optionImage} resizeMode="cover" />
-                  <View style={styles.optionTextWrap}>
-                    <Text style={styles.optionName}>{item.nome}</Text>
-                    <View style={styles.optionRight}>
-                      <TouchableOpacity
-                        style={[
-                          styles.optionSelectButton,
-                          isSelected && styles.optionSelectButtonActive,
-                        ]}
-                        onPress={() => toggleOption(item.id)}
-                      >
-                        {isSelected ? <View style={styles.optionSelectDot} /> : null}
-                      </TouchableOpacity>
-                      <Text style={styles.optionPriceSmall}>+ R$ {item.preco.toFixed(2)}</Text>
-                    </View>
-                  </View>
-                </View>
-              );
-            })}
-          </View>
-
-          <View style={styles.personalizacaoSection}>
-            <Text style={styles.personalizacaoTitle}>Personalizar</Text>
-            {PERSONALIZACAO.map((item) => {
-              const isSelected = personalizacao[item.id];
-              const cantidad = personalizacao[item.id] || 0;
-              return (
-                <View style={styles.personalizacaoCard} key={item.id}>
-                  <View style={styles.personalizacaoLeft}>
-                    <Text style={styles.personalizacaoName}>{item.nome}</Text>
-                    <Text style={styles.personalizacaoPrice}>R$ {item.preco.toFixed(2)}</Text>
-                  </View>
-              <View style={styles.optionsTitleRow}>
-                <Text style={styles.optionsTitle}>Personalizar</Text>
-                <Text style={styles.optionsOptional}>Opcional</Text>
+        <ScrollView style={styles.contentScroll} showsVerticalScrollIndicator={false}>
+          <View style={styles.content}>
+            <View style={styles.titleRow}>
+              <Text style={styles.title}>SUPERNOVA</Text>
+              <View style={styles.priceBox}>
+                <Text style={styles.price}>R$38.00</Text>
               </View>
+            </View>
 
-              <View style={styles.optionsList}>
-                {PERSONALIZACAO.map((item) => {
-                  const isSelected = personalizacao[item.id];
-                  const cantidad = personalizacao[item.id] || 0;
-                  return (
-                    <View style={styles.optionCard} key={item.id}>
-                      <Image source={item.imagem} style={styles.optionImage} resizeMode="cover" />
-                      <View style={styles.optionTextWrap}>
-                        <Text style={styles.optionName}>{item.nome}</Text>
-                        <View style={styles.optionRight}>
-                          {item.selecionavel ? (
-                            <TouchableOpacity
-                              style={[
-                                styles.optionSelectButton,
-                                isSelected && styles.optionSelectButtonActive,
-                              ]}
-                              onPress={() => togglePersonalizacao(item.id)}
-                            >
-                              {isSelected ? <View style={styles.optionSelectDot} /> : null}
-                            </TouchableOpacity>
-                          ) : (
-                            <View style={styles.qtyControlSmall}>
-                              <TouchableOpacity
-                                style={styles.qtyBtnSmall}
-                                onPress={() => decrementPersonalizacao(item.id)}
-                              >
-                                <Text style={styles.qtyBtnText}>−</Text>
-                              </TouchableOpacity>
-                              <Text style={styles.qtyNumberSmall}>{cantidad}</Text>
-                              <TouchableOpacity
-                                style={styles.qtyBtnSmall}
-                                onPress={() => incrementPersonalizacao(item.id)}
-                              >
-                                <Text style={styles.qtyBtnText}>+</Text>
-                              </TouchableOpacity>
-                            </View>
-                          )}
-                          <Text style={styles.optionPriceSmall}>+ R$ {item.preco.toFixed(2)}</Text>
-                        </View>
+            <Text style={styles.description}>
+              Pão brioche macio; Hambúrguer artesanal 100% bovino; Queijo cheddar derretido; Alface
+              fresca; Tomate em rodelas; Cebola caramelizada.
+            </Text>
+
+            <View style={styles.optionsTitleRow}>
+              <Text style={styles.optionsTitle}>Escolha o produto</Text>
+              <Text style={styles.optionsOptional}>Opcional</Text>
+            </View>
+
+            <View style={styles.optionsList}>
+              {OPTIONALS.map((item) => {
+                const isSelected = selectedOptions.includes(item.id);
+                return (
+                  <View style={styles.optionCard} key={item.id}>
+                    <Image source={item.imagem} style={styles.optionImage} resizeMode="cover" />
+                    <View style={styles.optionTextWrap}>
+                      <Text style={styles.optionName}>{item.nome}</Text>
+                      <View style={styles.optionRight}>
+                        <TouchableOpacity
+                          style={[
+                            styles.optionSelectButton,
+                            isSelected && styles.optionSelectButtonActive,
+                          ]}
+                          onPress={() => toggleOption(item.id)}
+                        >
+                          {isSelected ? <View style={styles.optionSelectDot} /> : null}
+                        </TouchableOpacity>
+                        <Text style={styles.optionPriceSmall}>+ R$ {item.preco.toFixed(2)}</Text>
                       </View>
                     </View>
-                  );
-                })}
-              </View>
+                  </View>
+                );
+              })}
             </View>
-          </ScrollView>
-        </View>
+
+            <View style={styles.personalizacaoSection}>
+              <Text style={styles.personalizacaoTitle}>Personalizar</Text>
+              {PERSONALIZACAO.map((item) => {
+                const isSelected = personalizacao[item.id];
+                const cantidad = personalizacao[item.id] || 0;
+                return (
+                  <View style={styles.personalizacaoCard} key={item.id}>
+                    <View style={styles.personalizacaoLeft}>
+                      <Text style={styles.personalizacaoName}>{item.nome}</Text>
+                      <Text style={styles.personalizacaoPrice}>R$ {item.preco.toFixed(2)}</Text>
+                    </View>
+                    <View style={styles.personalizacaoActions}>
+                      {item.selecionavel ? (
+                        <TouchableOpacity
+                          style={[
+                            styles.optionSelectButton,
+                            isSelected && styles.optionSelectButtonActive,
+                          ]}
+                          onPress={() => togglePersonalizacao(item.id)}
+                        >
+                          {isSelected ? <View style={styles.optionSelectDot} /> : null}
+                        </TouchableOpacity>
+                      ) : (
+                        <View style={styles.qtyControlSmall}>
+                          <TouchableOpacity
+                            style={styles.qtyBtnSmall}
+                            onPress={() => decrementPersonalizacao(item.id)}
+                          >
+                            <Text style={styles.qtyBtnText}>−</Text>
+                          </TouchableOpacity>
+                          <Text style={styles.qtyNumberSmall}>{cantidad}</Text>
+                          <TouchableOpacity
+                            style={styles.qtyBtnSmall}
+                            onPress={() => incrementPersonalizacao(item.id)}
+                          >
+                            <Text style={styles.qtyBtnText}>+</Text>
+                          </TouchableOpacity>
+                        </View>
+                      )}
+                    </View>
+                  </View>
+                );
+              })}
+            </View>
+          </View>
+        </ScrollView>
       </View>
 
       <View style={styles.bottomActionBar}>
@@ -426,6 +406,43 @@ const styles = StyleSheet.create({
   optionPriceSmall: {
     color: '#8e6f53',
     fontFamily: 'Nunito_400Regular',
+  },
+  personalizacaoSection: {
+    marginTop: 20,
+  },
+  personalizacaoTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#632713',
+    marginBottom: 10,
+    fontFamily: 'Nunito_400Regular',
+  },
+  personalizacaoCard: {
+    backgroundColor: '#fff4e9',
+    padding: 12,
+    borderRadius: 14,
+    marginBottom: 10,
+  },
+  personalizacaoLeft: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  personalizacaoName: {
+    flex: 1,
+    color: '#231815',
+    fontWeight: '700',
+    fontFamily: 'Nunito_400Regular',
+  },
+  personalizacaoPrice: {
+    color: '#8e6f53',
+    fontFamily: 'Nunito_400Regular',
+  },
+  personalizacaoActions: {
+    flexDirection: 'row',
+    justifyContent: 'flex-start',
+    alignItems: 'center',
   },
   bottomActionBar: {
     position: 'absolute',

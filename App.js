@@ -3,8 +3,9 @@ import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, View, ActivityIndicator } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { useFonts, LuckiestGuy_400Regular } from '@expo-google-fonts/luckiest-guy';
+import { LilitaOne_400Regular } from '@expo-google-fonts/lilita-one';
 import { onAuthStateChanged } from 'firebase/auth';
-import * as Font from 'expo-font';
 import { auth } from './Config/FireBaseConfig';
 import TelaLogin from './TelaLogin/TelaLogin';
 import TelaCadastro from './Cadastro/TelaCadastro';
@@ -16,25 +17,11 @@ const Stack = createNativeStackNavigator();
 
 export default function App() {
   const [initialRoute, setInitialRoute] = useState('Login');
-  const [fontsLoaded, setFontsLoaded] = useState(false);
   const [authChecked, setAuthChecked] = useState(false);
-
-  useEffect(() => {
-    const loadFonts = async () => {
-      try {
-        await Font.loadAsync({
-          'Luckiest Guy': 'https://fonts.gstatic.com/s/luckiestguy/v1/Yc2l0hlHoYX8uo0dDvx7xdvSQ9Qu8BcSEwTPsJqI9FM.ttf',
-          'Lilita One': 'https://fonts.gstatic.com/s/lilitaone/v8/i7dPIFZ9Sd9QOQ4NUVLjYEKjMz4.ttf',
-        });
-      } catch (error) {
-        console.warn('Falha ao carregar fontes:', error);
-      } finally {
-        setFontsLoaded(true);
-      }
-    };
-
-    loadFonts();
-  }, []);
+  const [fontsLoaded] = useFonts({
+    'Luckiest Guy': LuckiestGuy_400Regular,
+    'Lilita One': LilitaOne_400Regular,
+  });
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(
