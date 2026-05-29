@@ -207,7 +207,7 @@ export default function TelaHome({ navigation }) {
         <TouchableOpacity
           style={styles.bottomButtonPrimary}
           activeOpacity={0.85}
-          onPress={() => navigation.navigate('Admin')}
+          onPress={() => navigation.navigate('TelaAdmin')}
         >
           <AntDesign name="plus" size={30} color="black" />
         </TouchableOpacity>

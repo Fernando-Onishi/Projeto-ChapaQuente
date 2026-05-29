@@ -72,7 +72,7 @@ export default function App() {
         <Stack.Screen name="Perfil" component={TelaPerfil} />
         <Stack.Screen name="TelaFavorito" component={TelaFavorito} />
         <Stack.Screen name="TelaDescricao" component={TelaDescricao} />
-        <Stack.Screen name="Admin" component={TelaAdmin} />
+        <Stack.Screen name="TelaAdmin" component={TelaAdmin} />
       </Stack.Navigator>
       <StatusBar style="light" />
     </NavigationContainer>
