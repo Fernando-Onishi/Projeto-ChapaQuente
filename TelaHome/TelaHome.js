@@ -100,6 +100,10 @@ export default function TelaHome({ navigation }) {
         />
       </View>
 
+      <TouchableOpacity style={styles.descricaoButton} onPress={() => navigation.navigate('TelaDescricao')}>
+        <Text style={styles.descricaoButtonText}>📋 Descrição</Text>
+      </TouchableOpacity>
+
       <Text style={styles.sectionTitle}>Produtos</Text>
       <FlatList
         data={produtos.slice(0, 5)}
@@ -169,7 +173,7 @@ export default function TelaHome({ navigation }) {
         >
           <Text style={styles.bottomTextPrimary}>+</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.bottomButton} activeOpacity={0.75} onPress={() => {}}>
+        <TouchableOpacity style={styles.bottomButton} activeOpacity={0.75} onPress={() => navigation.navigate('TelaFavorito')}>
           <Text style={styles.bottomText}>❤️ Favoritos</Text>
         </TouchableOpacity>
       </View>
@@ -358,6 +362,21 @@ const styles = StyleSheet.create({
     fontSize: 24,
     lineHeight: 26,
     fontWeight: '700',
+  },
+  descricaoButton: {
+    alignSelf: 'flex-start',
+    backgroundColor: '#fff8f2',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 18,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: '#e7c5b7',
+  },
+  descricaoButtonText: {
+    color: '#c25b2d',
+    fontWeight: '700',
+    fontSize: 14,
   },
   
 });

@@ -56,9 +56,6 @@ export default function TelaDescricao({ navigation }) {
     );
   };
 
-  const increment = () => setQuantity((q) => q + 1);
-  const decrement = () => setQuantity((q) => Math.max(1, q - 1));
-
   const togglePersonalizacao = (id) => {
     setPersonalizacao((prev) => ({
       ...prev,
@@ -79,6 +76,9 @@ export default function TelaDescricao({ navigation }) {
       [id]: Math.max(0, (prev[id] || 0) - 1),
     }));
   };
+
+  const increment = () => setQuantity((q) => q + 1);
+  const decrement = () => setQuantity((q) => Math.max(1, q - 1));
 
   function onMomentumScrollEnd(e) {
     const page = Math.round(e.nativeEvent.contentOffset.x / width);
@@ -116,117 +116,102 @@ export default function TelaDescricao({ navigation }) {
           </View>
         </View>
 
-        <View style={styles.content}>
-          <View style={styles.titleRow}>
-            <Text style={styles.title}>SUPERNOVA</Text>
-          <ScrollView style={styles.contentScroll} showsVerticalScrollIndicator={false}>
-            <View style={styles.content}>
-              <View style={styles.titleRow}>
-                <Text style={styles.title}>SUPERNOVA</Text>
-            <View style={styles.priceBox}>
-              <Text style={styles.price}>R$38.00</Text>
-            </View>
-          </View>
-
-          <Text style={styles.description}>
-            Pão brioche macio; Hambúrguer artesanal 100% bovino; Queijo cheddar derretido; Alface
-            fresca; Tomate em rodelas; Cebola caramelizada.
-          </Text>
-
-          <View style={styles.optionsTitleRow}>
-            <Text style={styles.optionsTitle}>Escolha o produto</Text>
-            <Text style={styles.optionsOptional}>Opcional</Text>
-          </View>
-
-          <View style={styles.optionsList}>
-            {OPTIONALS.map((item) => {
-              const isSelected = selectedOptions.includes(item.id);
-              return (
-                <View style={styles.optionCard} key={item.id}>
-                  <Image source={item.imagem} style={styles.optionImage} resizeMode="cover" />
-                  <View style={styles.optionTextWrap}>
-                    <Text style={styles.optionName}>{item.nome}</Text>
-                    <View style={styles.optionRight}>
-                      <TouchableOpacity
-                        style={[
-                          styles.optionSelectButton,
-                          isSelected && styles.optionSelectButtonActive,
-                        ]}
-                        onPress={() => toggleOption(item.id)}
-                      >
-                        {isSelected ? <View style={styles.optionSelectDot} /> : null}
-                      </TouchableOpacity>
-                      <Text style={styles.optionPriceSmall}>+ R$ {item.preco.toFixed(2)}</Text>
-                    </View>
-                  </View>
-                </View>
-              );
-            })}
-          </View>
-
-          <View style={styles.personalizacaoSection}>
-            <Text style={styles.personalizacaoTitle}>Personalizar</Text>
-            {PERSONALIZACAO.map((item) => {
-              const isSelected = personalizacao[item.id];
-              const cantidad = personalizacao[item.id] || 0;
-              return (
-                <View style={styles.personalizacaoCard} key={item.id}>
-                  <View style={styles.personalizacaoLeft}>
-                    <Text style={styles.personalizacaoName}>{item.nome}</Text>
-                    <Text style={styles.personalizacaoPrice}>R$ {item.preco.toFixed(2)}</Text>
-                  </View>
-              <View style={styles.optionsTitleRow}>
-                <Text style={styles.optionsTitle}>Personalizar</Text>
-                <Text style={styles.optionsOptional}>Opcional</Text>
+        <ScrollView style={styles.contentScroll} showsVerticalScrollIndicator={false}>
+          <View style={styles.content}>
+            <View style={styles.titleRow}>
+              <Text style={styles.title}>SUPERNOVA</Text>
+              <View style={styles.priceBox}>
+                <Text style={styles.price}>R$38.00</Text>
               </View>
+            </View>
 
-              <View style={styles.optionsList}>
-                {PERSONALIZACAO.map((item) => {
-                  const isSelected = personalizacao[item.id];
-                  const cantidad = personalizacao[item.id] || 0;
-                  return (
-                    <View style={styles.optionCard} key={item.id}>
-                      <Image source={item.imagem} style={styles.optionImage} resizeMode="cover" />
-                      <View style={styles.optionTextWrap}>
-                        <Text style={styles.optionName}>{item.nome}</Text>
-                        <View style={styles.optionRight}>
-                          {item.selecionavel ? (
-                            <TouchableOpacity
-                              style={[
-                                styles.optionSelectButton,
-                                isSelected && styles.optionSelectButtonActive,
-                              ]}
-                              onPress={() => togglePersonalizacao(item.id)}
-                            >
-                              {isSelected ? <View style={styles.optionSelectDot} /> : null}
-                            </TouchableOpacity>
-                          ) : (
-                            <View style={styles.qtyControlSmall}>
-                              <TouchableOpacity
-                                style={styles.qtyBtnSmall}
-                                onPress={() => decrementPersonalizacao(item.id)}
-                              >
-                                <Text style={styles.qtyBtnText}>−</Text>
-                              </TouchableOpacity>
-                              <Text style={styles.qtyNumberSmall}>{cantidad}</Text>
-                              <TouchableOpacity
-                                style={styles.qtyBtnSmall}
-                                onPress={() => incrementPersonalizacao(item.id)}
-                              >
-                                <Text style={styles.qtyBtnText}>+</Text>
-                              </TouchableOpacity>
-                            </View>
-                          )}
-                          <Text style={styles.optionPriceSmall}>+ R$ {item.preco.toFixed(2)}</Text>
-                        </View>
+            <Text style={styles.description}>
+              Pão brioche macio; Hambúrguer artesanal 100% bovino; Queijo cheddar derretido; Alface
+              fresca; Tomate em rodelas; Cebola caramelizada.
+            </Text>
+
+            <View style={styles.optionsTitleRow}>
+              <Text style={styles.optionsTitle}>Escolha o produto</Text>
+              <Text style={styles.optionsOptional}>Opcional</Text>
+            </View>
+
+            <View style={styles.optionsList}>
+              {OPTIONALS.map((item) => {
+                const isSelected = selectedOptions.includes(item.id);
+                return (
+                  <View style={styles.optionCard} key={item.id}>
+                    <Image source={item.imagem} style={styles.optionImage} resizeMode="cover" />
+                    <View style={styles.optionTextWrap}>
+                      <Text style={styles.optionName}>{item.nome}</Text>
+                      <View style={styles.optionRight}>
+                        <TouchableOpacity
+                          style={[
+                            styles.optionSelectButton,
+                            isSelected && styles.optionSelectButtonActive,
+                          ]}
+                          onPress={() => toggleOption(item.id)}
+                        >
+                          {isSelected ? <View style={styles.optionSelectDot} /> : null}
+                        </TouchableOpacity>
+                        <Text style={styles.optionPriceSmall}>+ R$ {item.preco.toFixed(2)}</Text>
                       </View>
                     </View>
-                  );
-                })}
-              </View>
+                  </View>
+                );
+              })}
             </View>
-          </ScrollView>
-        </View>
+
+            <View style={styles.optionsTitleRow}>
+              <Text style={styles.optionsTitle}>Personalizar</Text>
+              <Text style={styles.optionsOptional}>Opcional</Text>
+            </View>
+
+            <View style={styles.optionsList}>
+              {PERSONALIZACAO.map((item) => {
+                const isSelected = personalizacao[item.id];
+                const cantidad = personalizacao[item.id] || 0;
+                return (
+                  <View style={styles.optionCard} key={item.id}>
+                    <Image source={item.imagem} style={styles.optionImage} resizeMode="cover" />
+                    <View style={styles.optionTextWrap}>
+                      <Text style={styles.optionName}>{item.nome}</Text>
+                      <View style={styles.optionRight}>
+                        {item.selecionavel ? (
+                          <TouchableOpacity
+                            style={[
+                              styles.optionSelectButton,
+                              isSelected && styles.optionSelectButtonActive,
+                            ]}
+                            onPress={() => togglePersonalizacao(item.id)}
+                          >
+                            {isSelected ? <View style={styles.optionSelectDot} /> : null}
+                          </TouchableOpacity>
+                        ) : (
+                          <View style={styles.qtyControlSmall}>
+                            <TouchableOpacity
+                              style={styles.qtyBtnSmall}
+                              onPress={() => decrementPersonalizacao(item.id)}
+                            >
+                              <Text style={styles.qtyBtnText}>−</Text>
+                            </TouchableOpacity>
+                            <Text style={styles.qtyNumberSmall}>{cantidad}</Text>
+                            <TouchableOpacity
+                              style={styles.qtyBtnSmall}
+                              onPress={() => incrementPersonalizacao(item.id)}
+                            >
+                              <Text style={styles.qtyBtnText}>+</Text>
+                            </TouchableOpacity>
+                          </View>
+                        )}
+                        <Text style={styles.optionPriceSmall}>+ R$ {item.preco.toFixed(2)}</Text>
+                      </View>
+                    </View>
+                  </View>
+                );
+              })}
+            </View>
+          </View>
+        </ScrollView>
       </View>
 
       <View style={styles.bottomActionBar}>
@@ -265,10 +250,10 @@ const styles = StyleSheet.create({
     marginTop: 28,
     paddingBottom: 24,
   },
-    contentScroll: {
-      flex: 1,
-      paddingBottom: 80,
-    },
+  contentScroll: {
+    flex: 1,
+    paddingBottom: 80,
+  },
   topRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -427,6 +412,32 @@ const styles = StyleSheet.create({
     color: '#8e6f53',
     fontFamily: 'Nunito_400Regular',
   },
+  qtyControlSmall: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#e0d5cc',
+    borderRadius: 12,
+    paddingHorizontal: 4,
+    marginRight: 8,
+  },
+  qtyBtnSmall: {
+    width: 24,
+    height: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  qtyBtnText: {
+    fontSize: 14,
+    color: '#231815',
+    fontWeight: 'bold',
+  },
+  qtyNumberSmall: {
+    marginHorizontal: 6,
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#231815',
+  },
   bottomActionBar: {
     position: 'absolute',
     left: 20,
@@ -487,30 +498,5 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontFamily: 'LilitaOne_400Regular',
     fontSize: 16,
-  },
-  qtyControlSmall: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#e0d5cc',
-    borderRadius: 12,
-    paddingHorizontal: 4,
-  },
-  qtyBtnSmall: {
-    width: 24,
-    height: 24,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  qtyBtnText: {
-    fontSize: 14,
-    color: '#231815',
-    fontWeight: 'bold',
-  },
-  qtyNumberSmall: {
-    marginHorizontal: 6,
-    fontSize: 12,
-    fontWeight: '700',
-    color: '#231815',
   },
 });
