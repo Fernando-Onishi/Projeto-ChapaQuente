@@ -224,7 +224,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 22,
-    fontFamily: 'LuckiestGuy_400Regular',
+    fontFamily: 'Luckiest Guy',
     color: '#000',
     marginBottom: 8,
   },
@@ -240,7 +240,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 8,
     borderRadius: 12,
-    fontFamily: 'LilitaOne_400Regular',
+    fontFamily: 'Lalezar',
     fontWeight: '700',
     fontSize: 18,
   },
@@ -248,7 +248,7 @@ const styles = StyleSheet.create({
     marginTop: 12,
     color: '#444',
     lineHeight: 20,
-    fontFamily: 'Nunito_400Regular',
+    fontFamily: 'Lora',
   },
   optionsTitleRow: {
     flexDirection: 'row',
@@ -261,7 +261,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#632713',
     fontWeight: '700',
-    fontFamily: 'Nunito_400Regular',
+    fontFamily: 'Lalezar',
   },
   optionsOptional: {
     color: '#999',
@@ -293,7 +293,7 @@ const styles = StyleSheet.create({
   optionName: {
     color: '#231815',
     fontWeight: '700',
-    fontFamily: 'Nunito_400Regular',
+    fontFamily: 'Lora',
     flex: 1,
     marginRight: 10,
   },
@@ -322,7 +322,7 @@ const styles = StyleSheet.create({
   },
   optionPriceSmall: {
     color: '#8e6f53',
-    fontFamily: 'Nunito_400Regular',
+    fontFamily: 'Lora',
   },
   bottomActionBar: {
     position: 'absolute',
@@ -369,10 +369,14 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingVertical: 8,
     marginHorizontal: 8,
+    backgroundColor: '#EC6426',
+    borderRadius: 18,
   },
   addButtonText: {
-    color: '#231815',
+    color: '#fff',
     fontWeight: '700',
+    fontFamily: 'Lalezar',
+    fontSize: 14,
   },
   totalBox: {
     backgroundColor: '#EC6426',
@@ -383,7 +387,7 @@ const styles = StyleSheet.create({
   },
   totalText: {
     color: '#fff',
-    fontFamily: 'LilitaOne_400Regular',
+    fontFamily: 'Lalezar',
     fontSize: 16,
   },
 });

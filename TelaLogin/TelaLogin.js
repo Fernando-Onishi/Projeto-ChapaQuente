@@ -160,6 +160,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#3c2a1e',
     paddingLeft: 8,
+    fontFamily: 'Lora',
   },
   button: {
     height: 52,
@@ -173,6 +174,7 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontWeight: '700',
+    fontFamily: 'Lalezar',
   },
   smallText: {
     color: '#ffe6ce',
@@ -180,10 +182,12 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     lineHeight: 18,
     marginTop: 12,
+    fontFamily: 'Lora',
   },
   linkText: {
     color: '#ffe6ce',
     textDecorationLine: 'underline',
+    fontFamily: 'Lalezar',
   },
   helpButton: {
     position: 'absolute',
@@ -218,5 +222,6 @@ const styles = StyleSheet.create({
     marginBottom: 22,
     alignSelf: 'stretch',
     marginHorizontal: 0,
+    fontFamily: 'Lora',
   },
 });

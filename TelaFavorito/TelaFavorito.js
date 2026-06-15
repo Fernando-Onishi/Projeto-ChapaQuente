@@ -16,14 +16,14 @@ const PRODUTOS_FAVORITOS = [
     nome: 'Brasa Viva',
     preco: 'R$ 42,00',
     desc: 'Triplo burger bovino grelhado no fogo, bacon crocante e molho barbecue.',
-    imagem: require('../assets/hamburguer6.png'),
+    imagem: require('../assets/hamburguer.png'),
   },
   {
     id: '3',
     nome: 'Fusão Nuclear',
     preco: 'R$ 48,00',
     desc: 'Duplo burger bovino, cheddar derretido em dobro e cebola caramelizada.',
-    imagem: require('../assets/hamburguer3.png'),
+    imagem: require('../assets/hamburguer2.png'),
   },
   {
     id: '4',
@@ -122,7 +122,7 @@ const styles = StyleSheet.create({
     fontSize: 32,
     fontWeight: 'bold',
     color: '#000',
-    fontFamily: 'LuckiestGuy_400Regular',
+    fontFamily: 'Luckiest Guy',
     lineHeight: 36,
   },
   listaContainer: {
@@ -167,14 +167,14 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#000',
     marginBottom: 10,
-    fontFamily: 'LuckiestGuy_400Regular',
+    fontFamily: 'Luckiest Guy',
   },
   descProduto: {
     fontSize: 14,
     color: '#555',
     marginBottom: 10,
     lineHeight: 20,
-    fontFamily: 'Nunito_400Regular',
+    fontFamily: 'Lora',
   },
   precoContainer: {
     flexDirection: 'row',
@@ -185,12 +185,13 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#EC6426',
     marginRight: 10,
-    fontFamily: 'LilitaOne_400Regular',
+    fontFamily: 'Lalezar',
   },
   precoAntigoProduto: {
     fontSize: 14,
     color: '#000',
     textDecorationLine: 'line-through',
+    fontFamily: 'Lora',
   },
   coracaoIcon: {
     width: 28,
