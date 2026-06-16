@@ -239,15 +239,14 @@ const styles = StyleSheet.create({
     color: '#231815',
     marginBottom: 28,
     textTransform: 'uppercase',
-    fontFamily: 'LuckiestGuy-Regular',
+    fontFamily: 'Luckiest Guy',
   },
   label: {
     fontSize: 19,
     fontWeight: '900',
     color: '#231815',
     marginBottom: 10,
-    
-    fontFamily: 'Nunito-Bold',
+    fontFamily: 'Lalezar',
   },
   input: {
     backgroundColor: '#F8E4D1',
@@ -257,12 +256,12 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#231815',
     marginBottom: 20,
-    fontFamily: 'Nunito-Regular',
+    fontFamily: 'Lora',
   },
   inputDisabled: {
     backgroundColor: '#E9D2B7',
     color: '#8F6F58',
-    fontFamily: 'Nunito-Regular',
+    fontFamily: 'Lora',
   },
   inputMultiline: {
     minHeight: 100,
@@ -285,7 +284,7 @@ const styles = StyleSheet.create({
   previewLabel: {
     color: '#8F6F58',
     fontSize: 14,
-    fontFamily: 'Nunito-Regular',
+    fontFamily: 'Lora',
   },
   buttonRow: {
     flexDirection: 'row',
@@ -299,12 +298,18 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     alignItems: 'center',
     marginRight: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.12,
+    shadowRadius: 8,
+    elevation: 3,
   },
   saveText: {
     color: '#fff',
     fontSize: 16,
     fontWeight: '900',
-    fontFamily: 'Nunito-Bold',
+    fontFamily: 'Lalezar',
+    textTransform: 'uppercase',
   },
   cancelButton: {
     flex: 1,
@@ -314,11 +319,13 @@ const styles = StyleSheet.create({
     borderColor: '#231815',
     alignItems: 'center',
     justifyContent: 'center',
+    backgroundColor: '#fff',
   },
   cancelText: {
     color: '#231815',
     fontSize: 16,
     fontWeight: '900',
-    fontFamily: 'Nunito-Bold',
+    fontFamily: 'Lalezar',
+    textTransform: 'uppercase',
   },
 });

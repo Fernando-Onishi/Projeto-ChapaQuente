@@ -14,6 +14,7 @@ import {
 import { auth as autenticacao, db as bancoDados } from '../Config/FireBaseConfig';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { updateProfile } from 'firebase/auth';
+import { LinearGradient } from 'expo-linear-gradient';
 
 const camposIniciais = {
   nome: '',
@@ -228,121 +229,135 @@ export default function TelaPerfil({ navigation }) {
   }
 
   return (
-    <ScrollView style={estilos.scroll} contentContainerStyle={estilos.scrollContent}>
-      <View style={[estilos.card, { minHeight: windowHeight - 24 }]}> 
-        <View style={estilos.cardHeader}>
-          <TouchableOpacity style={estilos.backButton} onPress={() => navigation.goBack()}>
-            <Text style={estilos.backButtonText}>←</Text>
-          </TouchableOpacity>
-          <Text style={estilos.title}>Tela do Usuário</Text>
-          <View style={estilos.headerSpacer} />
-        </View>
-
-        <View style={estilos.avatarContainer}>
-          {photoUrl ? (
-            <Image source={{ uri: photoUrl }} style={estilos.avatar} />
-          ) : (
-            <View style={[estilos.avatar, estilos.avatarPlaceholder]}>
-              <Text style={estilos.avatarText}>FOTO</Text>
-            </View>
-          )}
-          {editando && (
-            <View style={estilos.photoActionsRow}>
-              <TouchableOpacity
-                style={estilos.photoActionButton}
-                onPress={() => setMostrarUrlFoto(true)}
-              >
-                <Text style={estilos.photoActionText}>Trocar Foto</Text>
-              </TouchableOpacity>
-              {photoUrl ? (
-                <TouchableOpacity
-                  style={estilos.removePhotoButton}
-                  onPress={removerFotoPerfil}
-                >
-                  <Text style={estilos.removePhotoText}>Remover Foto</Text>
-                </TouchableOpacity>
-              ) : null}
-            </View>
-          )}
-        </View>
-
-        {mostrarUrlFoto && (
-          <View style={estilos.fieldBlock}>
-            <Text style={estilos.fieldLabel}>URL da Foto</Text>
-            <TextInput
-              style={[estilos.input, !editando && estilos.inputDisabled]}
-              value={photoUrl || ''}
-              onChangeText={setPhotoUrl}
-              editable={editando}
-              placeholder="https://..."
-              keyboardType="url"
-              autoCapitalize="none"
-              autoCorrect={false}
-            />
-          </View>
-        )}
-
-        <View style={estilos.fieldBlock}>
-          <Text style={estilos.fieldLabel}>Nome</Text>
-          <TextInput
-            style={[estilos.input, !editando && estilos.inputDisabled]}
-            value={nomeCompleto}
-            onChangeText={(valor) => atualizarCampo('nomeCompleto', valor)}
-            editable={editando}
-            autoCapitalize="words"
-          />
-        </View>
-
-        <View style={estilos.fieldBlock}>
-          <Text style={estilos.fieldLabel}>CEP</Text>
-          <TextInput
-            style={[estilos.input, !editando && estilos.inputDisabled]}
-            value={perfil.cep}
-            onChangeText={(valor) => atualizarCampo('cep', valor)}
-            editable={editando}
-            keyboardType="numeric"
-            placeholder="00000-000"
-            maxLength={9}
-          />
-        </View>
-
-        <View style={estilos.fieldBlock}>
-          <Text style={estilos.fieldLabel}>Endereço (Rua e Número)</Text>
-          <TextInput
-            style={[estilos.input, !editando && estilos.inputDisabled, estilos.addressInput]}
-            value={perfil.rua}
-            onChangeText={(valor) => atualizarCampo('rua', valor)}
-            editable={editando}
-            multiline
-            autoCapitalize="sentences"
-          />
-        </View>
-
-        <View style={estilos.actionArea}>
-          {editando ? (
-            <>
-              <TouchableOpacity style={[estilos.actionButton, estilos.primaryButton]} onPress={salvarPerfil} disabled={salvando}>
-                <Text style={estilos.actionButtonText}>{salvando ? 'Salvando...' : 'Salvar Perfil'}</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={[estilos.actionButton, estilos.secondaryButton]} onPress={() => setEditando(false)}>
-                <Text style={estilos.secondaryButtonText}>CANCELAR</Text>
-              </TouchableOpacity>
-            </>
-          ) : (
-            <TouchableOpacity style={[estilos.actionButton, estilos.primaryButton]} onPress={() => setEditando(true)}>
-              <Text style={estilos.actionButtonText}>Alterar Perfil</Text>
+    <LinearGradient colors={['#FFF6EE', '#FFF', '#FFE9D8']} style={estilos.container}>
+      <ScrollView style={estilos.scroll} contentContainerStyle={estilos.scrollContent}>
+        <View style={[estilos.card, { minHeight: windowHeight - 24 }]}> 
+          <View style={estilos.cardHeader}>
+            <TouchableOpacity style={estilos.backButton} onPress={() => navigation.goBack()}>
+              <Text style={estilos.backButtonText}>←</Text>
             </TouchableOpacity>
+            <Text style={estilos.title}>Meu perfil</Text>
+            <View style={estilos.headerSpacer} />
+          </View>
+
+          <View style={estilos.avatarContainer}>
+            <View style={estilos.avatarShell}>
+              {photoUrl ? (
+                <Image source={{ uri: photoUrl }} style={estilos.avatar} />
+              ) : (
+                <View style={[estilos.avatar, estilos.avatarPlaceholder]}>
+                  <Text style={estilos.avatarText}>{(nomeCompleto || 'USUÁRIO').slice(0, 2).toUpperCase()}</Text>
+                </View>
+              )}
+            </View>
+            <Text style={estilos.nomeUsuario}>{nomeCompleto || 'Usuário'}</Text>
+          </View>
+
+          {editando ? (
+            <View style={estilos.formPanel}>
+              {mostrarUrlFoto && (
+                <View style={estilos.fieldBlock}>
+                  <Text style={estilos.fieldLabel}>URL da Foto</Text>
+                  <TextInput
+                    style={[estilos.input, !editando && estilos.inputDisabled]}
+                    value={photoUrl || ''}
+                    onChangeText={setPhotoUrl}
+                    editable={editando}
+                    placeholder="https://..."
+                    keyboardType="url"
+                    autoCapitalize="none"
+                    autoCorrect={false}
+                  />
+                </View>
+              )}
+
+              <View style={estilos.fieldBlock}>
+                <Text style={estilos.fieldLabel}>Nome completo</Text>
+                <TextInput
+                  style={[estilos.input, !editando && estilos.inputDisabled]}
+                  value={nomeCompleto}
+                  onChangeText={(valor) => atualizarCampo('nomeCompleto', valor)}
+                  editable={editando}
+                  autoCapitalize="words"
+                />
+              </View>
+
+              <View style={estilos.fieldBlock}>
+                <Text style={estilos.fieldLabel}>CEP</Text>
+                <TextInput
+                  style={[estilos.input, !editando && estilos.inputDisabled]}
+                  value={perfil.cep}
+                  onChangeText={(valor) => atualizarCampo('cep', valor)}
+                  editable={editando}
+                  keyboardType="numeric"
+                  placeholder="00000-000"
+                  maxLength={9}
+                />
+              </View>
+
+              <View style={estilos.fieldBlock}>
+                <Text style={estilos.fieldLabel}>Endereço</Text>
+                <TextInput
+                  style={[estilos.input, !editando && estilos.inputDisabled, estilos.addressInput]}
+                  value={perfil.rua}
+                  onChangeText={(valor) => atualizarCampo('rua', valor)}
+                  editable={editando}
+                  multiline
+                  autoCapitalize="sentences"
+                />
+              </View>
+
+              <View style={estilos.photoActionsRow}>
+                <TouchableOpacity style={estilos.photoActionButton} onPress={() => setMostrarUrlFoto(true)}>
+                  <Text style={estilos.photoActionText}>Trocar Foto</Text>
+                </TouchableOpacity>
+                {photoUrl ? (
+                  <TouchableOpacity style={estilos.removePhotoButton} onPress={removerFotoPerfil}>
+                    <Text style={estilos.removePhotoText}>Remover Foto</Text>
+                  </TouchableOpacity>
+                ) : null}
+              </View>
+
+              <View style={estilos.actionArea}>
+                <TouchableOpacity style={[estilos.actionButton, estilos.primaryButton]} onPress={salvarPerfil} disabled={salvando}>
+                  <Text style={estilos.actionButtonText}>{salvando ? 'Salvando...' : 'Salvar Perfil'}</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={[estilos.actionButton, estilos.secondaryButton]} onPress={() => setEditando(false)}>
+                  <Text style={estilos.secondaryButtonText}>Cancelar</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          ) : (
+            <View style={estilos.infoPanel}>
+              <View style={estilos.infoCard}>
+                <Text style={estilos.infoLabel}>Nome</Text>
+                <Text style={estilos.infoValue}>{nomeCompleto || 'Não informado'}</Text>
+              </View>
+              <View style={estilos.infoCard}>
+                <Text style={estilos.infoLabel}>CEP</Text>
+                <Text style={estilos.infoValue}>{perfil.cep || 'Não informado'}</Text>
+              </View>
+              <View style={estilos.infoCard}>
+                <Text style={estilos.infoLabel}>Endereço</Text>
+                <Text style={estilos.infoValue}>{perfil.rua || 'Não informado'}</Text>
+              </View>
+              <TouchableOpacity style={[estilos.actionButton, estilos.primaryButton]} onPress={() => setEditando(true)}>
+                <Text style={estilos.actionButtonText}>Editar perfil</Text>
+              </TouchableOpacity>
+            </View>
           )}
         </View>
-      </View>
-    </ScrollView>
+      </ScrollView>
+    </LinearGradient>
   );
 }
 
 const estilos = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
   scroll: {
     flex: 1,
-    backgroundColor: '#fff3ea',
   },
   scrollContent: {
     paddingTop: 24,
@@ -354,12 +369,12 @@ const estilos = StyleSheet.create({
     flex: 1,
     width: '100%',
     alignSelf: 'stretch',
-    backgroundColor: '#fff',
+    backgroundColor: 'rgba(255,255,255,0.92)',
     borderRadius: 34,
     padding: 22,
     shadowColor: '#000',
-    shadowOpacity: 0.08,
-    shadowRadius: 20,
+    shadowOpacity: 0.10,
+    shadowRadius: 18,
     shadowOffset: { width: 0, height: 8 },
     elevation: 6,
   },
@@ -384,24 +399,36 @@ const estilos = StyleSheet.create({
     color: '#EC6426',
   },
   title: {
-    fontSize: 22,
+    fontSize: 20,
     fontWeight: '800',
     letterSpacing: 1,
     color: '#2d2a24',
     textTransform: 'uppercase',
+    fontFamily: 'Luckiest Guy',
   },
   headerSpacer: {
     width: 34,
   },
   avatarContainer: {
     alignItems: 'center',
-    marginBottom: 22,
+    marginBottom: 18,
+  },
+  avatarShell: {
+    padding: 4,
+    borderRadius: 70,
+    backgroundColor: '#FFF',
+    shadowColor: '#EC6426',
+    shadowOpacity: 0.18,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 6 },
+    elevation: 4,
   },
   avatar: {
-    width: 132,
-    height: 132,
-    borderRadius: 66,
-    marginBottom: 12,
+    width: 128,
+    height: 128,
+    borderRadius: 64,
+    borderWidth: 3,
+    borderColor: '#FFF4EB',
   },
   avatarPlaceholder: {
     backgroundColor: '#f7e4d4',
@@ -409,10 +436,18 @@ const estilos = StyleSheet.create({
     alignItems: 'center',
   },
   avatarText: {
-    color: '#b7a89e',
-    fontSize: 16,
+    color: '#fff',
+    fontSize: 18,
     fontWeight: '700',
     letterSpacing: 1.2,
+    fontFamily: 'Lalezar',
+  },
+  nomeUsuario: {
+    fontSize: 18,
+    fontWeight: '800',
+    color: '#2d2a24',
+    marginTop: 6,
+    fontFamily: 'Luckiest Guy',
   },
   photoActionsRow: {
     marginTop: 12,
@@ -430,6 +465,7 @@ const estilos = StyleSheet.create({
   photoActionText: {
     color: '#fff',
     fontWeight: '700',
+    fontFamily: 'Lalezar',
   },
   removePhotoButton: {
     backgroundColor: '#fff',
@@ -442,10 +478,41 @@ const estilos = StyleSheet.create({
   removePhotoText: {
     color: '#f37910',
     fontWeight: '700',
+    fontFamily: 'Lalezar',
   },
   photoButtonText: {
     color: '#fff',
     fontWeight: '700',
+  },
+  formPanel: {
+    paddingTop: 2,
+  },
+  infoPanel: {
+    gap: 10,
+  },
+  infoCard: {
+    borderRadius: 18,
+    backgroundColor: '#FFF7F2',
+    padding: 14,
+    borderWidth: 1,
+    borderColor: '#F3DEC9',
+    shadowColor: '#000',
+    shadowOpacity: 0.04,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 3 },
+    elevation: 2,
+  },
+  infoLabel: {
+    color: '#8A705B',
+    fontSize: 12,
+    fontFamily: 'Lalezar',
+    textTransform: 'uppercase',
+  },
+  infoValue: {
+    color: '#2d2a24',
+    fontSize: 15,
+    marginTop: 4,
+    fontFamily: 'Lora',
   },
   fieldBlock: {
     marginBottom: 16,
@@ -454,6 +521,7 @@ const estilos = StyleSheet.create({
     color: '#2d2a24',
     fontWeight: '700',
     marginBottom: 8,
+    fontFamily: 'Lalezar',
   },
   input: {
     backgroundColor: '#f4e3d5',
@@ -462,6 +530,7 @@ const estilos = StyleSheet.create({
     paddingHorizontal: 16,
     color: '#2d2a24',
     fontSize: 16,
+    fontFamily: 'Lora',
   },
   inputDisabled: {
     backgroundColor: '#f7f0e8',
@@ -480,6 +549,11 @@ const estilos = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 12,
+    shadowColor: '#000',
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 3,
   },
   primaryButton: {
     backgroundColor: '#f37910',
@@ -488,6 +562,7 @@ const estilos = StyleSheet.create({
     color: '#fff',
     fontWeight: '700',
     fontSize: 16,
+    fontFamily: 'Lalezar',
   },
   secondaryButton: {
     backgroundColor: 'transparent',
@@ -498,6 +573,7 @@ const estilos = StyleSheet.create({
     color: '#f37910',
     fontWeight: '700',
     fontSize: 14,
+    fontFamily: 'Lalezar',
   },
   centralizado: {
     flex: 1,

@@ -182,6 +182,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#3c2a1e',
     paddingLeft: 8,
+    fontFamily: 'Lora',
   },
   button: {
     height: 52,
@@ -195,6 +196,7 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontWeight: '700',
+    fontFamily: 'Lalezar',
   },
   backButton: {
     marginTop: 16,
@@ -210,6 +212,7 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 15,
     fontWeight: '700',
+    fontFamily: 'Lalezar',
   },
   smallText: {
     color: '#ffe6ce',

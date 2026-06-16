@@ -1,35 +1,18 @@
-import React, { useEffect, useState } from 'react';
+﻿import React, { useEffect, useState } from 'react';
 import { View, StyleSheet, Text, TouchableOpacity, ScrollView, FlatList, Dimensions, Image, Alert } from 'react-native';
-import Entypo from '@expo/vector-icons/Entypo';
 import { AntDesign } from '@expo/vector-icons';
 import { signOut, onAuthStateChanged } from 'firebase/auth';
-import { doc, onSnapshot } from 'firebase/firestore';
-import { useIsFocused } from '@react-navigation/native';
+import { collection, doc, getDoc, onSnapshot } from 'firebase/firestore';
 import { auth, db } from '../Config/FireBaseConfig';
 
 export default function TelaHome({ navigation }) {
   const [userName, setUserName] = useState('Usuário');
-  const [userPhoto, setUserPhoto] = useState(null);
-
-  const produtos = [
-    { id: '1', nome: 'Giga Planet', imagem: require('../assets/hamburguer.png'), preco: '48,00', precoAntigo: ''},
-    { id: '2', nome: 'Supernova', imagem: require('../assets/hamburguer1.png'), preco: '38,00', precoAntigo: ''},
-    { id: '3', nome: 'Cheese Storm', imagem: require('../assets/hamburguer2.png'), preco: '48,00', precoAntigo: ''},
-    { id: '4', nome: 'Mega Melt', imagem: require('../assets/hamburguer3.png'), preco: '42,00', precoAntigo: ''},
-    { id: '5', nome: 'Crispy Roll', imagem: require('../assets/hamburguer4.png'), preco: '36,00', precoAntigo: ''},
-    { id: '6', nome: 'Spicy Burst', imagem: require('../assets/hamburguer5.png'), preco: '44,00', precoAntigo: '52,00' },
-    { id: '7', nome: 'Bacon Bliss', imagem: require('../assets/hamburguer6.png'), preco: '40,00', precoAntigo: '48,00' },
-    { id: '8', nome: 'Veggie Delight', imagem: require('../assets/sorvete.png'), preco: '34,00', precoAntigo: '42,00' },
-    { id: '9', nome: 'Double Trouble', imagem: require('../assets/brownie.png'), preco: '50,00', precoAntigo: '60,00' },
-    { id: '10', nome: 'Mini Snack', imagem: require('../assets/sorvete1.png'), preco: '30,00', precoAntigo: '35,00' },
-  ];
+  const [produtos, setProdutos] = useState([]);
   const featured = produtos.slice(5, 10);
 
   const { width } = Dimensions.get('window');
   const cardWidth = Math.round(width * 0.48);
   const [favorites, setFavorites] = useState([]);
-  const [userId, setUserId] = useState(null);
-  const isFocused = useIsFocused();
 
   const toggleFavorite = (label) => {
     setFavorites((prev) => {
@@ -39,52 +22,55 @@ export default function TelaHome({ navigation }) {
   };
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
+    const unsubscribeProdutos = onSnapshot(
+      collection(db, 'produtos'),
+      (snapshot) => {
+        const lista = snapshot.docs.map((docSnap) => {
+          const item = docSnap.data();
+          const foto = item.Foto || item.foto || item.imagem || item.image || item.Foto2 || item.Foto3 || null;
+
+          return {
+            id: docSnap.id,
+            ...item,
+            nome: item.Produto || item.nome || item.name || 'Produto',
+            descricao: item.Descrição || item.descricao || item.description || '',
+            imagem: foto,
+            preco: item.Preço || item.Preco || item.preco || item.price || '0',
+            precoAntigo: item.ValorNormal || item.valorNormal || item.originalPrice || null,
+            desconto: item.Desconto || item.desconto || '',
+          };
+        });
+
+        setProdutos(lista);
+      },
+      () => {
+        setProdutos([]);
+      },
+    );
+
+    return () => unsubscribeProdutos();
+  }, []);
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user?.uid) {
-        setUserId(user.uid);
+        try {
+          const userDoc = await getDoc(doc(db, 'users', user.uid));
+          if (userDoc.exists()) {
+            setUserName(userDoc.data().name || 'Usuário');
+          } else {
+            setUserName('Usuário');
+          }
+        } catch (error) {
+          setUserName('Usuário');
+        }
       } else {
-        setUserId(null);
         setUserName('Usuário');
-        setUserPhoto(null);
       }
     });
 
     return unsubscribe;
   }, []);
-
-  useEffect(() => {
-    if (!userId) return;
-
-    const userDocRef = doc(db, 'users', userId);
-    const unsubscribeSnapshot = onSnapshot(
-      userDocRef,
-      (snapshot) => {
-        const user = auth.currentUser;
-        if (snapshot.exists()) {
-          const data = snapshot.data();
-          const firestoreName = data.nome || data.name || user?.displayName || 'Usuário';
-          const hasFoto = Object.prototype.hasOwnProperty.call(data, 'foto');
-          const hasFotoUrl = Object.prototype.hasOwnProperty.call(data, 'fotoUrl');
-          const fotoValue = typeof data.foto === 'string' && data.foto.trim() !== '' ? data.foto : null;
-          const fotoUrlValue = typeof data.fotoUrl === 'string' && data.fotoUrl.trim() !== '' ? data.fotoUrl : null;
-          const firestorePhoto = fotoValue ?? fotoUrlValue ?? (hasFoto || hasFotoUrl ? null : user?.photoURL ?? null);
-
-          setUserName(firestoreName);
-          setUserPhoto(firestorePhoto);
-        } else {
-          setUserName(user?.displayName || 'Usuário');
-          setUserPhoto(user?.photoURL || null);
-        }
-      },
-      (error) => {
-        const user = auth.currentUser;
-        setUserName(user?.displayName || 'Usuário');
-        setUserPhoto(user?.photoURL || null);
-      }
-    );
-
-    return unsubscribeSnapshot;
-  }, [userId]);
 
   const capitalizeFirst = (str) => {
     if (!str) return '';
@@ -105,7 +91,10 @@ export default function TelaHome({ navigation }) {
   };
 
   const renderizarImagem = (item) => {
-    if (!item.imagem) return null;
+    if (!item.imagem) {
+      return <View style={styles.placeholderImage}><Text style={styles.placeholderText}>Sem imagem</Text></View>;
+    }
+
     const source = typeof item.imagem === 'string' ? { uri: item.imagem } : item.imagem;
     return <Image source={source} style={styles.productImage} resizeMode="cover" />;
   };
@@ -113,24 +102,16 @@ export default function TelaHome({ navigation }) {
   return (
     <ScrollView style={styles.page} contentContainerStyle={styles.content}>
       <View style={styles.header}>
-        <View style={styles.headerLeft}>
-          <TouchableOpacity
-            style={styles.userCircle}
-            activeOpacity={0.7}
-            onPress={() => navigation.navigate('Perfil')}>
-            {userPhoto ? (
-              <Image source={{ uri: userPhoto }} style={styles.userPhoto} />
-            ) : (
-              <Text style={styles.userInitial}>{userInitial}</Text>
-            )}
-          </TouchableOpacity>
+        <TouchableOpacity style={styles.headerLeft} activeOpacity={0.8} onPress={() => navigation.navigate('Perfil')}>
+          <View style={styles.userCircle}>
+            <Text style={styles.userInitial}>{userInitial}</Text>
+          </View>
           <Text style={styles.headerTitle}>{userNameDisplay}</Text>
-        </View>
+        </TouchableOpacity>
         <TouchableOpacity style={styles.logoutButton} activeOpacity={0.7} onPress={handleSignOut}>
           <Text style={styles.logoutText}>Sair</Text>
         </TouchableOpacity>
       </View>
-
 
       <View style={[styles.bannerCard, { width, marginLeft: -20, marginRight: -20 }]}> 
         <Image
@@ -147,7 +128,6 @@ export default function TelaHome({ navigation }) {
         showsHorizontalScrollIndicator={false}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
-          <TouchableOpacity style={styles.descricaoButton} onPress={() => navigation.navigate('TelaDescricao')}>
           <View style={[styles.card, { width: cardWidth, marginRight: 10 }] }>
             <View style={styles.imagePlaceholder}>
               {renderizarImagem(item)}
@@ -157,12 +137,12 @@ export default function TelaHome({ navigation }) {
                   size={18}
                   color={favorites.includes(item.id) ? '#e0245e' : 'black'}
                 />
-              </TouchableOpacity>              
+              </TouchableOpacity>
             </View>
-            <Text style={styles.cardPriceLarge}>R$ {item.preco}</Text>
+            <Text style={styles.cardPriceLarge}>R$ {String(item.preco).replace('.', ',')}</Text>
             <Text style={styles.cardLabel}>{item.nome}</Text>
+            {item.descricao ? <Text numberOfLines={2} style={styles.cardDescription}>{item.descricao}</Text> : null}
           </View>
-          </TouchableOpacity>
         )}
         snapToInterval={cardWidth + 10}
         decelerationRate="fast"
@@ -170,29 +150,31 @@ export default function TelaHome({ navigation }) {
         contentContainerStyle={{ paddingHorizontal: 8, marginBottom: 24 }}
       />
 
-      <Text style={styles.sectionTitle}>Em destaque</Text>      
+      <Text style={styles.sectionTitle}>Em destaque</Text>
       <FlatList
         data={featured}
         horizontal
         showsHorizontalScrollIndicator={false}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
-          <TouchableOpacity style={styles.descricaoButton} onPress={() => navigation.navigate('TelaDescricao')}>
-            <View style={[styles.card, { width: cardWidth, marginRight: 12 }] }>
-              <View style={styles.imagePlaceholder}>
-                {renderizarImagem(item)}
-                <TouchableOpacity style={styles.favoriteButton} onPress={() => toggleFavorite(item.id)}>
-                  <AntDesign
-                    name="heart"
-                    size={18}
-                    color={favorites.includes(item.id) ? '#e0245e' : 'black'}
-                  />
-                </TouchableOpacity>
-              </View>
-              <Text style={styles.cardPriceLarge}>R$ {item.preco}</Text>
-              <Text style={styles.cardLabel}>{item.nome}</Text>
+          <View style={[styles.card, styles.featuredCard, { width: cardWidth, marginRight: 12 }] }>
+            <View style={styles.imagePlaceholder}>
+              {renderizarImagem(item)}
+              <TouchableOpacity style={styles.favoriteButton} onPress={() => toggleFavorite(item.id)}>
+                <AntDesign
+                  name="heart"
+                  size={18}
+                  color={favorites.includes(item.id) ? '#e0245e' : 'black'}
+                />
+              </TouchableOpacity>
             </View>
-          </TouchableOpacity>
+            <View style={styles.featuredInfo}>
+              {item.precoAntigo ? <Text style={styles.featuredPriceOld}>R$ {String(item.precoAntigo).replace('.', ',')}</Text> : null}
+              <Text style={styles.featuredPriceNew}>R$ {String(item.preco).replace('.', ',')}</Text>
+            </View>
+            <Text style={styles.cardLabel}>{item.nome}</Text>
+            {item.descricao ? <Text numberOfLines={2} style={styles.cardDescription}>{item.descricao}</Text> : null}
+          </View>
         )}
         snapToInterval={cardWidth + 12}
         decelerationRate="fast"
@@ -201,18 +183,18 @@ export default function TelaHome({ navigation }) {
       />
 
       <View style={styles.bottomBar}>
-        <TouchableOpacity style={styles.bottomButton} activeOpacity={0.75} onPress={() => navigation.navigate('Home')}>
-          <Entypo name="home" size={36} color="white" />
+        <TouchableOpacity style={styles.bottomButton} activeOpacity={0.75} onPress={() => {}}>
+          <Text style={styles.bottomText}>🏠 Home</Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.bottomButtonPrimary}
           activeOpacity={0.85}
           onPress={() => navigation.navigate('TelaAdmin')}
         >
-          <AntDesign name="plus" size={30} color="black" />
+          <Text style={styles.bottomTextPrimary}>+</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.bottomButton} activeOpacity={0.75} onPress={() => navigation.navigate('TelaFavorito')}>
-          <AntDesign name="heart" size={36} color="white" />
+          <Text style={styles.bottomText}>❤️ Favoritos</Text>
         </TouchableOpacity>
       </View>
     </ScrollView>
@@ -259,11 +241,6 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     fontSize: 18,
   },
-  userPhoto: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-  },
   headerTitle: {
     marginLeft: 12,
     fontSize: 18,
@@ -274,7 +251,7 @@ const styles = StyleSheet.create({
     width: '100%',
     overflow: 'hidden',
     marginBottom: 24,
-    marginTop: -40,
+    marginTop: -33,
     marginLeft: -20,
     marginRight: -20,
   },
@@ -292,43 +269,59 @@ const styles = StyleSheet.create({
   card: {
     flex: 1,
     marginRight: 10,
-    backgroundColor: '#FAE3D0',
-    borderRadius: 28,
-    padding: 0,
-    borderWidth: 0,
+    backgroundColor: '#FFF7F0',
+    borderRadius: 24,
+    padding: 8,
+    borderWidth: 1,
+    borderColor: '#F0D8C4',
     overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.08,
+    shadowRadius: 10,
+    elevation: 4,
   },
   featuredCard: {
-    backgroundColor: '#FAE3D0',
+    backgroundColor: '#FFF7F0',
   },
   imagePlaceholder: {
     width: '100%',
     aspectRatio: 1,
     overflow: 'hidden',
+    borderRadius: 18,
+    backgroundColor: '#F6E5D9',
   },
   cardLabel: {
     fontSize: 14,
     color: '#231815',
     fontWeight: '900',
-    marginBottom: 6,
+    marginBottom: 2,
     textTransform: 'uppercase',
-    paddingHorizontal: 8,
-    paddingTop: 15,
+    paddingHorizontal: 6,
+    paddingTop: 10,
     fontFamily: 'Luckiest Guy',
+  },
+  cardDescription: {
+    fontSize: 11,
+    color: '#5f4c3b',
+    lineHeight: 14,
+    paddingHorizontal: 6,
+    paddingBottom: 8,
+    fontFamily: 'Lora',
   },
   cardPriceLarge: {
     fontSize: 16,
-    color: '#ff8b38',
+    color: '#EC6426',
     fontWeight: '900',
-    marginTop: 8,
-    paddingHorizontal: 8,
-    fontFamily: 'Lilita One',
+    marginTop: 6,
+    paddingHorizontal: 6,
+    fontFamily: 'Lalezar',
   },
   featuredInfo: {
     flexDirection: 'row',
     alignItems: 'flex-end',
-    paddingHorizontal: 8,
-    marginTop: 6,
+    paddingHorizontal: 6,
+    marginTop: 4,
   },
   featuredPriceOld: {
     fontSize: 10,
@@ -339,13 +332,27 @@ const styles = StyleSheet.create({
   },
   featuredPriceNew: {
     fontSize: 15,
-    color: '#ff8b38',
+    color: '#EC6426',
     fontWeight: '900',
-    fontFamily: 'Lilita One',
+    fontFamily: 'Lalezar',
   },
   productImage: {
     width: '100%',
     height: '100%',
+  },
+  placeholderImage: {
+    width: '100%',
+    height: '100%',
+    backgroundColor: '#efe2d7',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 8,
+  },
+  placeholderText: {
+    color: '#8d6b55',
+    fontSize: 12,
+    textAlign: 'center',
+    fontFamily: 'Lilita One',
   },
   favoriteButton: {
     position: 'absolute',
@@ -365,6 +372,7 @@ const styles = StyleSheet.create({
     color: '#c25b2d',
     fontWeight: '700',
     fontSize: 14,
+    fontFamily: 'Lalezar',
   },
   bottomBar: {
     position: 'absolute',
@@ -386,31 +394,27 @@ const styles = StyleSheet.create({
   bottomButton: {
     alignItems: 'center',
     justifyContent: 'center',
-    flex: 1,
   },
   bottomButtonPrimary: {
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: '#fff',
+    backgroundColor: '#c25b2d',
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.12,
-    shadowRadius: 8,
-    elevation: 6,
   },
   bottomText: {
     color: '#8e6f53',
     fontSize: 12,
     fontWeight: '700',
+    fontFamily: 'Lalezar',
   },
   bottomTextPrimary: {
     color: '#fff',
     fontSize: 24,
     lineHeight: 26,
     fontWeight: '700',
+    fontFamily: 'Lalezar',
   },
   
 });
