@@ -17,7 +17,8 @@ import {
   TouchableWithoutFeedback,
 } from 'react-native';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
-import { AntDesign, FontAwesome6 } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
+import Entypo from '@expo/vector-icons/Entypo';
 import { db } from '../Config/FireBaseConfig';
 import { collection, onSnapshot, addDoc, doc, deleteDoc, updateDoc } from 'firebase/firestore';
 
@@ -628,8 +629,8 @@ export default function TelaAdministrador({ navigation }) {
         )}
 
         <View style={estilos.bottomBar}>
-          <TouchableOpacity style={estilos.bottomButton} activeOpacity={0.75} onPress={() => navigation.navigate('TelaAdministrador')}>
-            <FontAwesome6 name="gear" size={36} color="white" />
+          <TouchableOpacity style={estilos.bottomButton} activeOpacity={0.75} onPress={() => navigation.navigate('Home')}>
+            <Entypo name="home" size={36} color="white" />
           </TouchableOpacity>
           <TouchableOpacity style={estilos.bottomButtonPrimary} activeOpacity={0.85} onPress={() => navigation.navigate('TelaAdmin')}>
             <AntDesign name="plus" size={30} color="black" />
@@ -749,7 +750,7 @@ const estilos = StyleSheet.create({
     elevation: 2,
   },
   sheetCloseText: {
-    color: '#C94F27',
+    color: '#EC6426',
     fontSize: 13,
     fontWeight: '700',
   },
@@ -917,34 +918,31 @@ const estilos = StyleSheet.create({
     right: 20,
     bottom: 10,
     height: 64,
-    backgroundColor: '#C94F27',
+    backgroundColor: '#EC6426',
     borderRadius: 32,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-around',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.06,
+    shadowOpacity: 0.1,
     shadowRadius: 16,
     elevation: 10,
   },
   bottomButton: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
     alignItems: 'center',
     justifyContent: 'center',
-    flex: 1,
   },
   bottomButtonPrimary: {
-    width: 40,
-    height: 40,
+    width: 50,
+    height: 50,
     borderRadius: 28,
     backgroundColor: '#fff',
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.12,
-    shadowRadius: 8,
-    elevation: 6,
   },
   card: {
     backgroundColor: '#fff5ec',

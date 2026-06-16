@@ -20,24 +20,98 @@ export default function TelaAdmin() {
   const [titulo, setTitulo] = useState('');
   const [descricao, setDescricao] = useState('');
   const [precoNormal, setPrecoNormal] = useState('');
-  const [desconto, setDesconto] = useState('');
-  const [precoComDesconto, setPrecoComDesconto] = useState('');
-  const [imagem, setImagem] = useState('');
+  const [descontoPercent, setDescontoPercent] = useState('');
+  const [valorDesconto, setValorDesconto] = useState('');
+  const [precoVenda, setPrecoVenda] = useState('');
+  const [imagemPrincipal, setImagemPrincipal] = useState('');
+  const [imagem2, setImagem2] = useState('');
+  const [imagem3, setImagem3] = useState('');
+  const [ultimaImagemPreenchida, setUltimaImagemPreenchida] = useState('');
   const [saving, setSaving] = useState(false);
+
+  const precoNormalNumber = Number(precoNormal.trim().replace(',', '.'));
+  const descontoPercentNumber = Number(descontoPercent.trim());
+  const valorDescontoNumber = Number(valorDesconto.trim().replace(',', '.'));
+
+  const handlePrecoNormalChange = (value) => {
+    setPrecoNormal(value);
+    const precoNum = Number(value.replace(',', '.'));
+    if (!Number.isNaN(precoNum) && descontoPercentNumber > 0) {
+      const novoDesconto = Number((precoNum * descontoPercentNumber / 100).toFixed(2));
+      setValorDesconto(String(novoDesconto).replace('.', ','));
+      const novoPrecoVenda = Number((precoNum - novoDesconto).toFixed(2));
+      setPrecoVenda(String(novoPrecoVenda).replace('.', ','));
+    }
+  };
+
+  const handleDescontoPercentChange = (value) => {
+    // keep only digits in state; display will show '%' appended
+    const cleaned = String(value).replace(/[^0-9]/g, '');
+    setDescontoPercent(cleaned);
+    const descontoNum = Number(cleaned);
+    if (!Number.isNaN(precoNormalNumber) && !Number.isNaN(descontoNum) && descontoNum >= 0) {
+      const novoDesconto = Number((precoNormalNumber * descontoNum / 100).toFixed(2));
+      setValorDesconto(String(novoDesconto).replace('.', ','));
+      const novoPrecoVenda = Number((precoNormalNumber - novoDesconto).toFixed(2));
+      setPrecoVenda(String(novoPrecoVenda).replace('.', ','));
+    }
+  };
+
+  const handleValorDescontoChange = (value) => {
+    setValorDesconto(value);
+    const descontoNum = Number(value.replace(',', '.'));
+    if (!Number.isNaN(precoNormalNumber) && !Number.isNaN(descontoNum) && descontoNum >= 0) {
+      const novoPrecoVenda = Number((precoNormalNumber - descontoNum).toFixed(2));
+      setPrecoVenda(String(novoPrecoVenda).replace('.', ','));
+      const novoDescontoPercent = precoNormalNumber > 0 ? Number(((descontoNum / precoNormalNumber) * 100).toFixed(0)) : 0;
+      setDescontoPercent(String(novoDescontoPercent));
+    }
+  };
+
+  const handleImagemPrincipalChange = (value) => {
+    setImagemPrincipal(value);
+    if (value.trim()) {
+      setUltimaImagemPreenchida(value);
+    }
+  };
+
+  const handleImagem2Change = (value) => {
+    setImagem2(value);
+    if (value.trim()) {
+      setUltimaImagemPreenchida(value);
+    }
+  };
+
+  const handleImagem3Change = (value) => {
+    setImagem3(value);
+    if (value.trim()) {
+      setUltimaImagemPreenchida(value);
+    }
+  };
 
   const handleSave = async () => {
     const nome = titulo.trim();
     const desc = descricao.trim();
+    const precoVendaRaw = precoVenda.trim().replace(',', '.');
     const precoNormalRaw = precoNormal.trim().replace(',', '.');
-    const descontoRaw = desconto.trim().replace(',', '.');
-    const imagemUrl = imagem.trim();
+    const valorDescontoRaw = valorDesconto.trim().replace(',', '.');
+    const descontoPercentRaw = descontoPercent.trim();
+    const imagemUrl = imagemPrincipal.trim();
+    const imagem2Url = imagem2.trim();
+    const imagem3Url = imagem3.trim();
 
-    const precoNormalNumber = Number(precoNormalRaw);
-    const descontoNumber = Number(descontoRaw);
-    const precoFinalNumber = Number((precoNormalNumber - descontoNumber).toFixed(2));
-
-    if (!nome || !desc || !precoNormalRaw || !descontoRaw || !imagemUrl) {
+    if (!nome || !desc || !precoVendaRaw || !precoNormalRaw || !valorDescontoRaw || !descontoPercentRaw || !imagemUrl || !imagem2Url || !imagem3Url) {
       Alert.alert('Atenção', 'Preencha todos os campos para salvar o produto.');
+      return;
+    }
+
+    const precoVendaNumber = Number(precoVendaRaw);
+    const precoNormalNumber = Number(precoNormalRaw);
+    const valorDescontoNumber = Number(valorDescontoRaw);
+    const descontoPercentNumber = Number(descontoPercentRaw);
+
+    if (Number.isNaN(precoVendaNumber) || precoVendaNumber <= 0) {
+      Alert.alert('Atenção', 'Informe um preço de venda válido maior que zero.');
       return;
     }
 
@@ -46,13 +120,8 @@ export default function TelaAdmin() {
       return;
     }
 
-    if (Number.isNaN(descontoNumber) || descontoNumber < 0) {
-      Alert.alert('Atenção', 'Informe um valor de desconto válido.');
-      return;
-    }
-
-    if (descontoNumber >= precoNormalNumber) {
-      Alert.alert('Atenção', 'O desconto deve ser menor que o preço normal.');
+    if (precoVendaNumber >= precoNormalNumber) {
+      Alert.alert('Atenção', 'O preço de venda deve ser menor que o preço normal.');
       return;
     }
 
@@ -61,16 +130,30 @@ export default function TelaAdmin() {
       return;
     }
 
+    if (!imagem2Url.startsWith('http://') && !imagem2Url.startsWith('https://')) {
+      Alert.alert('Atenção', 'Informe um link de imagem 2 válido que comece com http ou https.');
+      return;
+    }
+
+    if (!imagem3Url.startsWith('http://') && !imagem3Url.startsWith('https://')) {
+      Alert.alert('Atenção', 'Informe um link de imagem 3 válido que comece com http ou https.');
+      return;
+    }
+
     try {
       setSaving(true);
       await addDoc(collection(db, 'produtos'), {
         nome,
         desc,
+        precoVenda: precoVendaNumber,
         precoNormal: precoNormalNumber,
-        desconto: descontoNumber,
-        precoComDesconto: precoFinalNumber,
-        preco: precoFinalNumber,
+        valorDesconto: Number(valorDescontoNumber.toFixed(2)),
+        desconto: descontoPercentNumber,
+        precoComDesconto: precoVendaNumber,
+        preco: precoVendaNumber,
         imagem: imagemUrl,
+        imagem2: imagem2Url,
+        imagem3: imagem3Url,
         createdAt: serverTimestamp(),
       });
 
@@ -104,7 +187,7 @@ export default function TelaAdmin() {
             onChangeText={setTitulo}
           />
 
-          <Text style={styles.label}>Descrição</Text>
+          <Text style={styles.label}>descrição</Text>
           <TextInput
             style={[styles.input, styles.inputMultiline]}
             placeholder="Digite a descrição"
@@ -115,70 +198,103 @@ export default function TelaAdmin() {
             numberOfLines={4}
           />
 
-          <Text style={styles.label}>Preço Normal (R$)</Text>
+          <Text style={styles.label}>Preço Venda (ex: 89,90)</Text>
+          <TextInput
+            style={[styles.input, styles.inputDisabled]}
+            placeholder="00,00"
+            placeholderTextColor="#AF8A72"
+            value={precoVenda}
+            editable={false}
+            keyboardType="numeric"
+          />
+
+          <Text style={styles.label}>Preço Normal (ex: 120,00)</Text>
           <TextInput
             style={styles.input}
             placeholder="00,00"
             placeholderTextColor="#AF8A72"
             value={precoNormal}
-            onChangeText={(value) => {
-              setPrecoNormal(value);
-              const precoValue = Number(value.replace(',', '.'));
-              const descontoValue = Number(desconto.replace(',', '.'));
-              if (!Number.isNaN(precoValue) && !Number.isNaN(descontoValue)) {
-                const finalValue = precoValue - descontoValue;
-                setPrecoComDesconto(finalValue >= 0 ? String(finalValue.toFixed(2)).replace('.', ',') : '');
-              } else {
-                setPrecoComDesconto('');
-              }
-            }}
+            onChangeText={handlePrecoNormalChange}
             keyboardType="numeric"
           />
 
-          <Text style={styles.label}>Desconto (R$)</Text>
+          <Text style={styles.label}>Valor Desconto R$</Text>
           <TextInput
             style={styles.input}
             placeholder="00,00"
             placeholderTextColor="#AF8A72"
-            value={desconto}
-            onChangeText={(value) => {
-              setDesconto(value);
-              const precoValue = Number(precoNormal.replace(',', '.'));
-              const descontoValue = Number(value.replace(',', '.'));
-              if (!Number.isNaN(precoValue) && !Number.isNaN(descontoValue)) {
-                const finalValue = precoValue - descontoValue;
-                setPrecoComDesconto(finalValue >= 0 ? String(finalValue.toFixed(2)).replace('.', ',') : '');
-              } else {
-                setPrecoComDesconto('');
-              }
-            }}
+            value={valorDesconto}
+            onChangeText={handleValorDescontoChange}
             keyboardType="numeric"
           />
 
-          <Text style={styles.label}>Valor com desconto (R$)</Text>
+          <Text style={styles.label}>Desconto (ex:25%)</Text>
           <TextInput
-            style={[styles.input, styles.inputDisabled]}
-            placeholder="00,00"
+            style={styles.input}
+            placeholder="00%"
             placeholderTextColor="#AF8A72"
-            value={precoComDesconto}
-            editable={false}
+            value={descontoPercent ? `${descontoPercent}%` : ''}
+            onChangeText={handleDescontoPercentChange}
+            keyboardType="numeric"
           />
 
-          <Text style={styles.label}>Link da imagem</Text>
+          <Text style={styles.label}>Link da Imagem da principal</Text>
           <TextInput
             style={styles.input}
             placeholder="https://"
             placeholderTextColor="#AF8A72"
-            value={imagem}
-            onChangeText={setImagem}
+            value={imagemPrincipal}
+            onChangeText={handleImagemPrincipalChange}
+          />
+
+          <Text style={styles.label}>Link da Imagem 2</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="https://"
+            placeholderTextColor="#AF8A72"
+            value={imagem2}
+            onChangeText={handleImagem2Change}
+          />
+
+          <Text style={styles.label}>Link da Imagem 3</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="https://"
+            placeholderTextColor="#AF8A72"
+            value={imagem3}
+            onChangeText={handleImagem3Change}
           />
 
           <View style={styles.previewBox}>
-            {imagem.trim().startsWith('http') ? (
-              <Image source={{ uri: imagem }} style={styles.previewImage} resizeMode="cover" />
+            {ultimaImagemPreenchida.trim().startsWith('http') ? (
+              <Image source={{ uri: ultimaImagemPreenchida }} style={styles.previewImage} resizeMode="cover" />
             ) : (
               <Text style={styles.previewLabel}>Preview da imagem</Text>
             )}
+          </View>
+
+          <View style={styles.previewRow}>
+            <View style={styles.previewItem}>
+              {imagemPrincipal.trim().startsWith('http') ? (
+                <Image source={{ uri: imagemPrincipal }} style={styles.previewImage} resizeMode="cover" />
+              ) : (
+                <Text style={styles.previewLabelSmall}>Prévia da Foto Principal</Text>
+              )}
+            </View>
+            <View style={styles.previewItem}>
+              {imagem2.trim().startsWith('http') ? (
+                <Image source={{ uri: imagem2 }} style={styles.previewImage} resizeMode="cover" />
+              ) : (
+                <Text style={styles.previewLabelSmall}>Prévia da Foto 2</Text>
+              )}
+            </View>
+            <View style={styles.previewItem}>
+              {imagem3.trim().startsWith('http') ? (
+                <Image source={{ uri: imagem3 }} style={styles.previewImage} resizeMode="cover" />
+              ) : (
+                <Text style={styles.previewLabelSmall}>Prévia da Foto 3</Text>
+              )}
+            </View>
           </View>
 
           <View style={styles.buttonRow}>
@@ -271,15 +387,36 @@ const styles = StyleSheet.create({
     height: 180,
     borderRadius: 24,
     backgroundColor: '#F8E4D1',
-    marginBottom: 24,
+    marginBottom: 16,
     alignItems: 'center',
     justifyContent: 'center',
     overflow: 'hidden',
   },
+  previewRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 24,
+    gap: 8,
+  },
+  previewItem: {
+    flex: 1,
+    height: 140,
+    borderRadius: 18,
+    backgroundColor: '#F8E4D1',
+    alignItems: 'center',
+    justifyContent: 'center',
+    overflow: 'hidden',
+  },
+  previewLabelSmall: {
+    color: '#8F6F58',
+    fontSize: 11,
+    textAlign: 'center',
+    fontFamily: 'Lora',
+    paddingHorizontal: 8,
+  },
   previewImage: {
     width: '100%',
     height: '100%',
-    borderRadius: 24,
   },
   previewLabel: {
     color: '#8F6F58',

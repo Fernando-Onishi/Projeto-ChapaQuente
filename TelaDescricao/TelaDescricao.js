@@ -13,31 +13,33 @@ import Feather from '@expo/vector-icons/Feather';
 
 const { width } = Dimensions.get('window');
 
-const IMAGENS_CARROSEL = [
-  require('../assets/hamburguer.png'),
-  require('../assets/batata.png'),
-  require('../assets/refri.png'),
-];
-
 const OPTIONALS = [
   { id: 'batata', nome: 'Batata frita crocante', preco: 5.0, imagem: require('../assets/batata.png') },
   { id: 'bigbigorna', nome: 'Big bigorna', preco: 42.0, imagem: require('../assets/hamburguer1.png') },
   { id: 'refri', nome: 'Refrigerante gelado', preco: 7.0, imagem: require('../assets/refri.png') },
 ];
 
-export default function TelaDescricao({ navigation }) {
+export default function TelaDescricao({ navigation, route }) {
   const scrollRef = useRef(null);
   const [index, setIndex] = useState(0);
   const [quantity, setQuantity] = useState(1);
   const [selectedOptions, setSelectedOptions] = useState([]);
-  const basePrice = 38.0;
+  const produto = route?.params?.produto || {};
+
+  const imagens = [];
+  if (produto.imagem) imagens.push(produto.imagem);
+  if (produto.imagem2) imagens.push(produto.imagem2);
+  if (produto.imagem3) imagens.push(produto.imagem3);
+
+  const imagenesCarrosel = imagens.length > 0 ? imagens : ['https://via.placeholder.com/300'];
+  const precoVenda = Number(String(produto.preco || 0).replace(',', '.'));
 
   const optionsTotal = selectedOptions.reduce((sum, id) => {
     const option = OPTIONALS.find((item) => item.id === id);
     return sum + (option?.preco || 0);
   }, 0);
 
-  const totalPrice = ((basePrice * quantity) + optionsTotal).toFixed(2);
+  const totalPrice = ((precoVenda * quantity) + optionsTotal).toFixed(2);
 
   const toggleOption = (optionId) => {
     setSelectedOptions((prev) =>
@@ -52,6 +54,14 @@ export default function TelaDescricao({ navigation }) {
     const page = Math.round(e.nativeEvent.contentOffset.x / width);
     setIndex(page);
   }
+
+  const renderImage = (imagemUrl) => {
+    if (!imagemUrl) return null;
+    if (typeof imagemUrl === 'string' && (imagemUrl.startsWith('http://') || imagemUrl.startsWith('https://'))) {
+      return <Image source={{ uri: imagemUrl }} style={styles.mainImage} resizeMode="contain" />;
+    }
+    return <Text style={styles.imagemPlaceholder}>Sem imagem</Text>;
+  };
 
   return (
     <View style={styles.container}>
@@ -71,14 +81,14 @@ export default function TelaDescricao({ navigation }) {
             showsHorizontalScrollIndicator={false}
             onMomentumScrollEnd={onMomentumScrollEnd}
           >
-            {IMAGENS_CARROSEL.map((src, i) => (
+            {imagenesCarrosel.map((src, i) => (
               <View style={styles.imageSlide} key={i}>
-                <Image source={src} style={styles.mainImage} resizeMode="contain" />
+                {renderImage(src)}
               </View>
             ))}
           </ScrollView>
           <View style={styles.indicators}>
-            {IMAGENS_CARROSEL.map((_, i) => (
+            {imagenesCarrosel.map((_, i) => (
               <View key={i} style={[styles.dot, i === index ? styles.dotActive : null]} />
             ))}
           </View>
@@ -86,15 +96,14 @@ export default function TelaDescricao({ navigation }) {
 
         <View style={styles.content}>
           <View style={styles.titleRow}>
-            <Text style={styles.title}>SUPERNOVA</Text>
+            <Text style={styles.title}>{produto.nome || 'PRODUTO'}</Text>
             <View style={styles.priceBox}>
-              <Text style={styles.price}>R$38.00</Text>
+              <Text style={styles.price}>R$ {String(precoVenda.toFixed(2)).replace('.', ',')}</Text>
             </View>
           </View>
 
           <Text style={styles.description}>
-            Pão brioche macio; Hambúrguer artesanal 100% bovino; Queijo cheddar derretido; Alface
-            fresca; Tomate em rodelas; Cebola caramelizada.
+            {produto.descricao || 'Descrição do produto não disponível'}
           </Text>
 
           <View style={styles.optionsTitleRow}>
@@ -389,5 +398,10 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontFamily: 'Lalezar',
     fontSize: 16,
+  },
+  imagemPlaceholder: {
+    color: '#8e6f53',
+    fontSize: 14,
+    fontFamily: 'Lora',
   },
 });

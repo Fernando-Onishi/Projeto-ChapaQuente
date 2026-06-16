@@ -17,6 +17,7 @@ import TelaPerfil from './TelaPerfil/TelaPerfil';
 import TelaFavorito from './TelaFavorito/TelaFavorito';
 import TelaDescricao from './TelaDescricao/TelaDescricao';
 import TelaAdmin from './TelaAdmin/TelaAdmin';
+import TelaAdministrador from './TelaAdmin/TelaAdministrador';
 
 const Stack = createNativeStackNavigator();
 
@@ -50,7 +51,7 @@ export default function App() {
   if (!fontsLoaded || !authChecked) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#C94F27" />
+        <ActivityIndicator size="large" color="#EC6426" />
       </View>
     );
   }
@@ -61,10 +62,11 @@ export default function App() {
         <Stack.Screen name="Login" component={TelaLogin} />
         <Stack.Screen name="Cadastro" component={TelaCadastro} />
         <Stack.Screen name="Home" component={TelaHome} />
-        <Stack.Screen name="Perfil" component={TelaPerfil} />
+        <Stack.Screen name="TelaPerfil" component={TelaPerfil} />
         <Stack.Screen name="TelaFavorito" component={TelaFavorito} />
         <Stack.Screen name="TelaDescricao" component={TelaDescricao} />
         <Stack.Screen name="TelaAdmin" component={TelaAdmin} />
+        <Stack.Screen name="TelaAdministrador" component={TelaAdministrador} />
       </Stack.Navigator>
       <StatusBar style="light" />
     </NavigationContainer>
