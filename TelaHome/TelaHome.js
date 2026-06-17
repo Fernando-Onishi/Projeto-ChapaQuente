@@ -226,7 +226,7 @@ export default function TelaHome({ navigation }) {
                 navigation.navigate('TelaDescricao', { produto: produtoDestaque });
               }}>
                 <Text style={styles.promoButtonText}>Ver mais</Text>
-                <SimpleLineIcons name="arrow-right" size={12} color="#fff" style={{ marginLeft: 10 }} />
+                <SimpleLineIcons name="arrow-right" size={14} color="#fff" style={{ marginLeft: 10 }} />
               </TouchableOpacity>
             </View>
             <Image
