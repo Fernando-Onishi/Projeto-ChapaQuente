@@ -10,6 +10,7 @@ import {
   ScrollView,
   ActivityIndicator,
   Alert,
+  Modal,
   KeyboardAvoidingView,
   Platform,
   Animated,
@@ -41,6 +42,9 @@ export default function TelaAdministrador({ navigation }) {
   const [novoProduto, setNovoProduto] = useState(camposIniciais);
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
   const [editandoId, setEditandoId] = useState(null);
+  const [produtoParaExcluir, setProdutoParaExcluir] = useState(null);
+  const [mostrarModalExcluir, setMostrarModalExcluir] = useState(false);
+  const [mostrarModalSucesso, setMostrarModalSucesso] = useState(false);
   const sheetTranslateY = useRef(new Animated.Value(360)).current;
 
   const fecharFormulario = () => {
@@ -317,31 +321,34 @@ export default function TelaAdministrador({ navigation }) {
     }
   };
 
-  const deletarProduto = (id, nome) => {
-    const acaoExcluir = async () => {
-      if (!id) {
-        Alert.alert('Erro', 'Não foi possível identificar o produto para excluir.');
-        return;
-      }
+  const abrirModalExcluir = (id, nome) => {
+    setProdutoParaExcluir({ id, nome });
+    setMostrarModalExcluir(true);
+  };
 
-      try {
-        await deleteDoc(doc(db, 'produtos', id));
-        setProdutos((anterior) => anterior.filter((item) => item.id !== id));
-        Alert.alert('Sucesso', 'Produto removido com sucesso.');
-      } catch (erro) {
-        console.error('Erro ao deletar produto:', erro);
-        Alert.alert('Erro', 'Não foi possível remover o produto.');
-      }
-    };
+  const cancelarExclusao = () => {
+    setMostrarModalExcluir(false);
+    setProdutoParaExcluir(null);
+  };
 
-    Alert.alert(
-      'Confirmar Exclusão',
-      `Deseja realmente deletar o produto "${nome}"?`,
-      [
-        { text: 'Cancelar', style: 'cancel' },
-        { text: 'Excluir', style: 'destructive', onPress: acaoExcluir },
-      ]
-    );
+  const confirmarExclusao = async () => {
+    if (!produtoParaExcluir?.id) {
+      Alert.alert('Erro', 'Não foi possível identificar o produto para excluir.');
+      return;
+    }
+
+    setMostrarModalExcluir(false);
+
+    try {
+      await deleteDoc(doc(db, 'produtos', produtoParaExcluir.id));
+      setProdutos((anterior) => anterior.filter((item) => item.id !== produtoParaExcluir.id));
+      setMostrarModalSucesso(true);
+    } catch (erro) {
+      console.error('Erro ao deletar produto:', erro);
+      Alert.alert('Erro', 'Não foi possível remover o produto.');
+    } finally {
+      setProdutoParaExcluir(null);
+    }
   };
 
   const formatarMoeda = (valor) => {
@@ -387,7 +394,7 @@ export default function TelaAdministrador({ navigation }) {
     return (
       <View style={estilos.card}>
         <View style={estilos.imagemContainer}>
-          <Image source={{ uri: produto.foto }} style={estilos.imagemProduto} resizeMode="cover" />
+          <Image source={{ uri: produto.foto }} style={estilos.imagemProduto} resizeMode="contain" />
           {descontoTexto ? (
             <View style={estilos.badgeDesconto}>
               <Text style={estilos.textoBadgeDesconto}>{descontoTexto} OFF</Text>
@@ -404,7 +411,7 @@ export default function TelaAdministrador({ navigation }) {
               <MaterialCommunityIcons name="pencil" size={24} color="#fff" />
               <Text style={estilos.textoBotaoEditar}>Editar</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={estilos.botaoDeletarBaixo} onPress={() => deletarProduto(item.id, produto.nome)}>
+            <TouchableOpacity style={estilos.botaoDeletarBaixo} onPress={() => abrirModalExcluir(item.id, produto.nome)}>
               <AntDesign name="delete" size={24} color="#fff" />
               <Text style={estilos.textoBotaoDeletarBaixo}>Deletar</Text>
             </TouchableOpacity>
@@ -555,7 +562,7 @@ export default function TelaAdministrador({ navigation }) {
                     <View style={estilos.previewGalleryColumn}>
                       <View style={estilos.previewGalleryItem}>
                         {novoProduto.Foto?.trim().startsWith('http') ? (
-                          <Image source={{ uri: novoProduto.Foto }} style={estilos.previewGalleryImage} resizeMode="cover" />
+                          <Image source={{ uri: novoProduto.Foto }} style={estilos.previewGalleryImage} resizeMode="contain" />
                         ) : (
                           <Text style={estilos.previewLabelSmall}>Foto 1</Text>
                         )}
@@ -565,7 +572,7 @@ export default function TelaAdministrador({ navigation }) {
                     <View style={estilos.previewGalleryColumn}>
                       <View style={estilos.previewGalleryItem}>
                         {novoProduto.Foto2?.trim().startsWith('http') ? (
-                          <Image source={{ uri: novoProduto.Foto2 }} style={estilos.previewGalleryImage} resizeMode="cover" />
+                          <Image source={{ uri: novoProduto.Foto2 }} style={estilos.previewGalleryImage} resizeMode="contain" />
                         ) : (
                           <Text style={estilos.previewLabelSmall}>Foto 2</Text>
                         )}
@@ -575,7 +582,7 @@ export default function TelaAdministrador({ navigation }) {
                     <View style={estilos.previewGalleryColumn}>
                       <View style={estilos.previewGalleryItem}>
                         {novoProduto.Foto3?.trim().startsWith('http') ? (
-                          <Image source={{ uri: novoProduto.Foto3 }} style={estilos.previewGalleryImage} resizeMode="cover" />
+                          <Image source={{ uri: novoProduto.Foto3 }} style={estilos.previewGalleryImage} resizeMode="contain" />
                         ) : (
                           <Text style={estilos.previewLabelSmall}>Foto 3</Text>
                         )}
@@ -607,6 +614,34 @@ export default function TelaAdministrador({ navigation }) {
             </Animated.View>
           </View>
         )}
+
+        <Modal visible={mostrarModalExcluir} transparent animationType="fade">
+          <View style={estilos.modalOverlay}>
+            <View style={estilos.modalContainer}>
+              <Text style={estilos.modalTitle}>Deseja realmente deletar o produto?</Text>
+              <Text style={estilos.modalMessage}>{produtoParaExcluir?.nome}</Text>
+              <View style={estilos.modalActions}>
+                <TouchableOpacity style={estilos.modalButtonCancel} onPress={cancelarExclusao}>
+                  <Text style={estilos.modalButtonCancelText}>Não</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={estilos.modalButtonConfirm} onPress={confirmarExclusao}>
+                  <Text style={estilos.modalButtonConfirmText}>Sim</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </Modal>
+
+        <Modal visible={mostrarModalSucesso} transparent animationType="fade">
+          <View style={estilos.successModalOverlay} pointerEvents="box-none">
+            <View style={estilos.successModalContainer}>
+              <Text style={estilos.successModalText}>🎉 Exclusão de Produto realizada com sucesso!</Text>
+              <TouchableOpacity style={estilos.successModalClose} onPress={() => setMostrarModalSucesso(false)}>
+                <Text style={estilos.successModalCloseText}>Fechar</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Modal>
 
         {carregando ? (
           <View style={estilos.centralizado}>
@@ -683,7 +718,7 @@ const estilos = StyleSheet.create({
     letterSpacing: 1,
     marginBottom: 16,
     textTransform: 'uppercase',
-    fontFamily: 'Luckiest Guy',
+    fontFamily: 'Lilita One',
   },
   sheetOverlay: {
     position: 'absolute',
@@ -735,6 +770,7 @@ const estilos = StyleSheet.create({
     fontSize: 12,
     color: '#7A6E66',
     marginTop: 2,
+    fontFamily: 'Lilita One',
   },
   sheetCloseButton: {
     width: 44,
@@ -764,7 +800,7 @@ const estilos = StyleSheet.create({
   },
   label: {
     fontSize: 14,
-    fontFamily: 'Nunito-Bold',
+    fontFamily: 'Luckiest Guy',
     color: '#231815',
     marginBottom: 6,
     marginTop: 4,
@@ -776,8 +812,8 @@ const estilos = StyleSheet.create({
     paddingVertical: 12,
     marginBottom: 10,
     fontSize: 14,
-    color: '#231815',
-    fontFamily: 'Nunito',
+    color: 'black',
+    fontFamily: 'Lilita One',
   },
   inputMultiline: {
     minHeight: 82,
@@ -825,13 +861,13 @@ const estilos = StyleSheet.create({
     marginTop: 4,
     color: '#6B5A4F',
     fontSize: 10,
-    fontFamily: 'Nunito-Bold',
+    fontFamily: 'Lilita One',
     textAlign: 'center',
   },
   previewLabelSmall: {
     color: '#8F6F58',
     fontSize: 11,
-    fontFamily: 'Nunito',
+    fontFamily: 'Lilita One',
   },
   buttonRow: {
     flexDirection: 'row',
@@ -860,15 +896,13 @@ const estilos = StyleSheet.create({
   },
   textoBotaoSalvar: {
     color: '#fff',
-    fontWeight: '700',
     fontSize: 14,
-    fontFamily: 'Lalezar',
+    fontFamily: 'Lilita One',
   },
   textoBotaoCancelar: {
     color: '#231815',
-    fontWeight: '700',
     fontSize: 14,
-    fontFamily: 'Lalezar',
+    fontFamily: 'Lilita One',
   },
   centralizado: {
     flex: 1,
@@ -903,6 +937,7 @@ const estilos = StyleSheet.create({
     color: '#fff',
     fontSize: 14,
     fontWeight: 'bold',
+    fontFamily: 'Lilita One',
   },
   lista: {
     paddingHorizontal: 16,
@@ -989,7 +1024,7 @@ const estilos = StyleSheet.create({
   },
   nomeProduto: {
     fontSize: 20,
-    fontFamily: 'Luckiest Guy',
+    fontFamily: 'Lilita One',
     color: '#231815',
     lineHeight: 18,
   },
@@ -1009,7 +1044,7 @@ const estilos = StyleSheet.create({
     fontSize: 13,
     color: '#F8A91F',
     fontWeight: '700',
-    fontFamily: 'Lalezar',
+    fontFamily: 'Lilita One',
     marginTop: 4,
     marginBottom: 8,
   },
@@ -1052,5 +1087,117 @@ const estilos = StyleSheet.create({
     fontSize: 14,
     fontWeight: 'bold',
     marginLeft: 6,
+  },
+  modalOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.35)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 24,
+  },
+  successModalOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.35)',
+    justifyContent: 'flex-start',
+    alignItems: 'center',
+    paddingTop: 32,
+    paddingHorizontal: 24,
+  },
+  modalContainer: {
+    width: '100%',
+    backgroundColor: '#fff',
+    borderRadius: 24,
+    padding: 24,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.12,
+    shadowRadius: 20,
+    elevation: 10,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#231815',
+    textAlign: 'center',
+    marginBottom: 12,
+  },
+  modalMessage: {
+    fontSize: 14,
+    fontFamily: "Luckiest Guy",
+    color: '#6B5A4F',
+    textAlign: 'center',
+    marginBottom: 24,
+  },
+  modalActions: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '100%',
+    gap: 12,
+  },
+  modalButtonCancel: {
+    flex: 1,
+    backgroundColor: '#E5FEFF',
+    borderRadius: 16,
+    paddingVertical: 14,
+    alignItems: 'center',
+  },
+  modalButtonCancelText: {
+    color: '#0A5A63',
+    fontSize: 14,
+    fontWeight: '700',
+  },
+  modalButtonConfirm: {
+    flex: 1,
+    backgroundColor: '#FF0000',
+    borderRadius: 16,
+    paddingVertical: 14,
+    alignItems: 'center',
+  },
+  modalButtonConfirmText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '700',
+  },
+  successModalContainer: {
+    width: '100%',
+    maxWidth: 380,
+    backgroundColor: '#fff',
+    borderRadius: 24,
+    padding: 18,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.12,
+    shadowRadius: 18,
+    elevation: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(0,0,0,0.08)',
+  },
+  successModalText: {
+    fontSize: 16,
+    color: '#231815',
+    fontWeight: '700',
+    marginBottom: 20,
+    textAlign: 'center',
+  },
+  successModalClose: {
+    backgroundColor: '#FF0000',
+    borderRadius: 16,
+    paddingVertical: 14,
+    paddingHorizontal: 32,
+  },
+  successModalCloseText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '700',
   },
 });

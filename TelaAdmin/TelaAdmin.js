@@ -9,6 +9,7 @@ import {
   ScrollView,
   Image,
   Alert,
+  Modal,
 } from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
@@ -28,6 +29,8 @@ export default function TelaAdmin() {
   const [imagem3, setImagem3] = useState('');
   const [ultimaImagemPreenchida, setUltimaImagemPreenchida] = useState('');
   const [saving, setSaving] = useState(false);
+  const [mostrarModalSucesso, setMostrarModalSucesso] = useState(false);
+  const [nomeProdutoSalvo, setNomeProdutoSalvo] = useState('');
 
   const precoNormalNumber = Number(precoNormal.trim().replace(',', '.'));
   const descontoPercentNumber = Number(descontoPercent.trim());
@@ -100,8 +103,8 @@ export default function TelaAdmin() {
     const imagem2Url = imagem2.trim();
     const imagem3Url = imagem3.trim();
 
-    if (!nome || !desc || !precoVendaRaw || !precoNormalRaw || !valorDescontoRaw || !descontoPercentRaw || !imagemUrl || !imagem2Url || !imagem3Url) {
-      Alert.alert('Atenção', 'Preencha todos os campos para salvar o produto.');
+    if (!nome || !desc || !precoVendaRaw || !precoNormalRaw || !valorDescontoRaw || !descontoPercentRaw || !imagemUrl) {
+      Alert.alert('Atenção', 'Preencha todos os campos obrigatórios para salvar o produto.');
       return;
     }
 
@@ -130,36 +133,49 @@ export default function TelaAdmin() {
       return;
     }
 
-    if (!imagem2Url.startsWith('http://') && !imagem2Url.startsWith('https://')) {
-      Alert.alert('Atenção', 'Informe um link de imagem 2 válido que comece com http ou https.');
+    if (imagem2Url && !imagem2Url.startsWith('http://') && !imagem2Url.startsWith('https://')) {
+      Alert.alert('Atenção', 'O link da imagem 2 deve começar com http ou https (ou deixe em branco).');
       return;
     }
 
-    if (!imagem3Url.startsWith('http://') && !imagem3Url.startsWith('https://')) {
-      Alert.alert('Atenção', 'Informe um link de imagem 3 válido que comece com http ou https.');
+    if (imagem3Url && !imagem3Url.startsWith('http://') && !imagem3Url.startsWith('https://')) {
+      Alert.alert('Atenção', 'O link da imagem 3 deve começar com http ou https (ou deixe em branco).');
       return;
     }
 
     try {
       setSaving(true);
       await addDoc(collection(db, 'produtos'), {
+        Produto: nome,
         nome,
+        Descrição: desc,
         desc,
-        precoVenda: precoVendaNumber,
-        precoNormal: precoNormalNumber,
-        valorDesconto: Number(valorDescontoNumber.toFixed(2)),
-        desconto: descontoPercentNumber,
-        precoComDesconto: precoVendaNumber,
+        Preço: precoVendaNumber,
         preco: precoVendaNumber,
+        ValorNormal: precoNormalNumber,
+        valorNormal: precoNormalNumber,
+        ValorDesconto: Number(valorDescontoNumber.toFixed(2)),
+        valorDesconto: Number(valorDescontoNumber.toFixed(2)),
+        Desconto: descontoPercentNumber >= 0 ? `${descontoPercentNumber}%` : '',
+        desconto: descontoPercentNumber >= 0 ? `${descontoPercentNumber}%` : '',
         imagem: imagemUrl,
-        imagem2: imagem2Url,
-        imagem3: imagem3Url,
+        Foto: imagemUrl,
+        Foto2: imagem2Url,
+        Foto3: imagem3Url,
         createdAt: serverTimestamp(),
       });
 
-      Alert.alert('Sucesso', 'Produto salvo com sucesso!', [
-        { text: 'OK', onPress: () => navigation.goBack() },
-      ]);
+      setNomeProdutoSalvo(nome);
+      setMostrarModalSucesso(true);
+      setTitulo('');
+      setDescricao('');
+      setPrecoNormal('');
+      setDescontoPercent('');
+      setValorDesconto('');
+      setPrecoVenda('');
+      setImagemPrincipal('');
+      setImagem2('');
+      setImagem3('');
     } catch (error) {
       console.warn('Erro ao salvar produto:', error);
       Alert.alert('Erro', 'Não foi possível salvar o produto. Tente novamente.');
@@ -312,6 +328,20 @@ export default function TelaAdmin() {
           </View>
         </View>
       </ScrollView>
+
+      <Modal visible={mostrarModalSucesso} transparent animationType="fade">
+        <View style={styles.successModalOverlay}>
+          <View style={styles.successModalContainer}>
+            <Text style={styles.successModalText}>🎉 Produto "{nomeProdutoSalvo}" adicionado com sucesso!</Text>
+            <TouchableOpacity
+              style={styles.successModalClose}
+              onPress={() => setMostrarModalSucesso(false)}
+            >
+              <Text style={styles.successModalCloseText}>Fechar</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -464,5 +494,49 @@ const styles = StyleSheet.create({
     fontWeight: '900',
     fontFamily: 'Lalezar',
     textTransform: 'uppercase',
+  },
+  successModalOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.35)',
+    justifyContent: 'flex-start',
+    alignItems: 'center',
+    paddingTop: 32,
+    paddingHorizontal: 24,
+  },
+  successModalContainer: {
+    width: '100%',
+    backgroundColor: '#fff',
+    borderRadius: 24,
+    padding: 24,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.12,
+    shadowRadius: 20,
+    elevation: 10,
+    borderWidth: 1,
+    borderColor: 'rgba(0,0,0,0.08)',
+  },
+  successModalText: {
+    fontSize: 16,
+    color: '#231815',
+    fontWeight: '700',
+    marginBottom: 20,
+    textAlign: 'center',
+  },
+  successModalClose: {
+    backgroundColor: '#FF0000',
+    borderRadius: 16,
+    paddingVertical: 14,
+    paddingHorizontal: 32,
+  },
+  successModalCloseText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '700',
   },
 });

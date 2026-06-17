@@ -18,6 +18,15 @@ export default function TelaHome({ navigation }) {
   const cardWidth = Math.round(width * 0.42);
   const [favorites, setFavorites] = useState([]);
 
+  const obterProdutoDestaque = () => {
+    return produtos.find(
+      (prod) =>
+        prod.nome &&
+        prod.nome.toLowerCase().includes('fusão') &&
+        prod.nome.toLowerCase().includes('nuclear')
+    );
+  };
+
   const toggleFavorite = (label) => {
     setFavorites((prev) => {
       if (prev.includes(label)) return prev.filter((l) => l !== label);
@@ -32,6 +41,8 @@ export default function TelaHome({ navigation }) {
         const lista = snapshot.docs.map((docSnap) => {
           const item = docSnap.data();
           const foto = item.Foto || item.foto || item.imagem || item.image || item.Foto2 || item.Foto3 || null;
+          const foto2 = item.Foto2 || item.foto2 || item.imagem2 || item.image2 || null;
+          const foto3 = item.Foto3 || item.foto3 || item.imagem3 || item.image3 || null;
 
           return {
             id: docSnap.id,
@@ -39,6 +50,8 @@ export default function TelaHome({ navigation }) {
             nome: item.Produto || item.nome || item.name || 'Produto',
             descricao: item.Descrição || item.descricao || item.description || '',
             imagem: foto,
+            imagem2: foto2,
+            imagem3: foto3,
             preco: item.Preço || item.Preco || item.preco || item.price || '0',
             precoAntigo: item.ValorNormal || item.valorNormal || item.originalPrice || null,
             desconto: item.Desconto || item.desconto || '',
@@ -86,6 +99,11 @@ export default function TelaHome({ navigation }) {
     return s.charAt(0).toUpperCase() + s.slice(1);
   };
 
+  const getFirstName = (str) => {
+    if (!str) return '';
+    return str.trim().split(' ')[0] || '';
+  };
+
   const formatPrice = (value) => {
     const normalized = String(value).replace(',', '.').replace(/[^[0-9].]/g, '');
     const parsed = parseFloat(normalized);
@@ -109,7 +127,8 @@ export default function TelaHome({ navigation }) {
     return `${Math.round(((originalValue - currentValue) / originalValue) * 100)}% OFF`;
   };
 
-  const userNameDisplay = userName ? capitalizeFirst(userName) : 'Usuário';
+  const firstName = getFirstName(userName);
+  const userNameDisplay = firstName ? capitalizeFirst(firstName) : 'Usuário';
   const userInitial = userNameDisplay ? userNameDisplay.charAt(0).toUpperCase() : 'U';
 
   const handleSignOut = async () => {
@@ -127,7 +146,7 @@ export default function TelaHome({ navigation }) {
     }
 
     const source = typeof item.imagem === 'string' ? { uri: item.imagem } : item.imagem;
-    return <Image source={source} style={styles.productImage} resizeMode="cover" />;
+    return <Image source={source} style={styles.productImage} resizeMode="contain" />;
   };
 
   const renderProductCard = (item, width) => {
@@ -173,7 +192,7 @@ export default function TelaHome({ navigation }) {
         <TouchableOpacity style={styles.headerLeft} activeOpacity={0.8} onPress={() => navigation.navigate('TelaPerfil')}>
           {userPhoto ? (
             <TouchableOpacity style={styles.headerAvatarShell} activeOpacity={0.8} onPress={() => navigation.navigate('TelaPerfil')}>
-              <Image source={{ uri: userPhoto }} style={styles.headerAvatar} />
+              <Image source={{ uri: userPhoto }} style={styles.headerAvatar} resizeMode="cover" />
             </TouchableOpacity>
           ) : (
             <TouchableOpacity style={styles.userCircle} activeOpacity={0.8} onPress={() => navigation.navigate('TelaPerfil')}>
@@ -200,9 +219,12 @@ export default function TelaHome({ navigation }) {
               <Text style={styles.promoSmall}>Por apenas:</Text>
               <View style={styles.promoPriceRow}>
                 <Text style={styles.promoCurrency}>R$</Text>
-                <Text style={styles.promoPrice}>48,00</Text>
+                <Text style={styles.promoPrice}>40,50</Text>
               </View>
-              <TouchableOpacity style={styles.promoButton} onPress={() => { /* ação do botão */ }}>
+              <TouchableOpacity style={styles.promoButton} onPress={() => {
+                const produtoDestaque = obterProdutoDestaque();
+                navigation.navigate('TelaDescricao', { produto: produtoDestaque });
+              }}>
                 <Text style={styles.promoButtonText}>Ver mais</Text>
                 <SimpleLineIcons name="arrow-right" size={12} color="#fff" style={{ marginLeft: 10 }} />
               </TouchableOpacity>
@@ -307,23 +329,23 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(255,255,255,0.4)',
   },
   headerAvatarShell: {
-    padding: 4,
-    borderRadius: 36,
-    backgroundColor: '#FFF',
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    backgroundColor: '#fff',
+    borderWidth: 2,
+    borderColor: '#fff',
+    overflow: 'hidden',
     shadowColor: '#EC6426',
     shadowOpacity: 0.18,
     shadowRadius: 6,
     shadowOffset: { width: 0, height: 4 },
     elevation: 4,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   headerAvatar: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    borderWidth: 2,
-    borderColor: '#FFF4EB',
+    width: '100%',
+    height: '100%',
+    borderRadius: 26,
   },
   userInitial: {
     color: '#EC6426',

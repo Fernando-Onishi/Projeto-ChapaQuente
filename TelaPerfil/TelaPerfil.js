@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import {
   View,
   Text,
@@ -11,9 +11,11 @@ import {
   Alert,
   Dimensions,
 } from 'react-native';
+import { AntDesign } from '@expo/vector-icons';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { auth as autenticacao, db as bancoDados } from '../Config/FireBaseConfig';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
-import { updateProfile } from 'firebase/auth';
+import { updateProfile, signOut } from 'firebase/auth';
 import { LinearGradient } from 'expo-linear-gradient';
 
 const camposIniciais = {
@@ -62,6 +64,7 @@ export default function TelaPerfil({ navigation }) {
   const [salvando, setSalvando] = useState(false);
   const usuario = autenticacao.currentUser;
   const windowHeight = Dimensions.get('window').height;
+  const urlFotoRef = useRef(null);
 
   useEffect(() => {
     const carregarDados = async () => {
@@ -140,6 +143,16 @@ export default function TelaPerfil({ navigation }) {
       Alert.alert('Erro', 'Não foi possível remover a foto. Tente novamente.');
     } finally {
       setSalvando(false);
+    }
+  };
+
+  const sair = async () => {
+    try {
+      await signOut(autenticacao);
+      navigation.replace('Login');
+    } catch (error) {
+      console.error('Erro ao sair:', error);
+      Alert.alert('Erro', 'Não foi possível sair no momento. Tente novamente.');
     }
   };
 
@@ -234,10 +247,12 @@ export default function TelaPerfil({ navigation }) {
         <View style={[estilos.card, { minHeight: windowHeight - 24 }]}> 
           <View style={estilos.cardHeader}>
             <TouchableOpacity style={estilos.backButton} onPress={() => navigation.goBack()}>
-              <Text style={estilos.backButtonText}>←</Text>
+              <AntDesign name="arrowleft" size={22} color="#231815" />
             </TouchableOpacity>
             <Text style={estilos.title}>Meu perfil</Text>
-            <View style={estilos.headerSpacer} />
+            <TouchableOpacity style={estilos.logoutButton} onPress={sair}>
+              <Ionicons name="log-out-outline" size={22} color="#fff" />
+            </TouchableOpacity>
           </View>
 
           <View style={estilos.avatarContainer}>
@@ -250,8 +265,17 @@ export default function TelaPerfil({ navigation }) {
                 </View>
               )}
             </View>
-            <Text style={estilos.nomeUsuario}>{nomeCompleto || 'Usuário'}</Text>
           </View>
+          {editando ? (
+            <View style={estilos.photoActionsRow}>
+              <TouchableOpacity style={estilos.photoActionButton} onPress={() => setMostrarUrlFoto(true)}>
+                <Text style={estilos.photoActionText}>Trocar Foto</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={estilos.removePhotoButton} onPress={removerFotoPerfil}>
+                <Text style={estilos.removePhotoText}>Remover Foto</Text>
+              </TouchableOpacity>
+            </View>
+          ) : null}
 
           {editando ? (
             <View style={estilos.formPanel}>
@@ -259,6 +283,7 @@ export default function TelaPerfil({ navigation }) {
                 <View style={estilos.fieldBlock}>
                   <Text style={estilos.fieldLabel}>URL da Foto</Text>
                   <TextInput
+                    ref={urlFotoRef}
                     style={[estilos.input, !editando && estilos.inputDisabled]}
                     value={photoUrl || ''}
                     onChangeText={setPhotoUrl}
@@ -267,6 +292,7 @@ export default function TelaPerfil({ navigation }) {
                     keyboardType="url"
                     autoCapitalize="none"
                     autoCorrect={false}
+                    selectTextOnFocus={true}
                   />
                 </View>
               )}
@@ -307,43 +333,36 @@ export default function TelaPerfil({ navigation }) {
                 />
               </View>
 
-              <View style={estilos.photoActionsRow}>
-                <TouchableOpacity style={estilos.photoActionButton} onPress={() => setMostrarUrlFoto(true)}>
-                  <Text style={estilos.photoActionText}>Trocar Foto</Text>
-                </TouchableOpacity>
-                {photoUrl ? (
-                  <TouchableOpacity style={estilos.removePhotoButton} onPress={removerFotoPerfil}>
-                    <Text style={estilos.removePhotoText}>Remover Foto</Text>
-                  </TouchableOpacity>
-                ) : null}
-              </View>
-
-              <View style={estilos.actionArea}>
-                <TouchableOpacity style={[estilos.actionButton, estilos.primaryButton]} onPress={salvarPerfil} disabled={salvando}>
+              <View style={estilos.actionAreaRow}>
+                <TouchableOpacity style={[estilos.actionButton, estilos.primaryButton, estilos.actionButtonHalf]} onPress={salvarPerfil} disabled={salvando}>
                   <Text style={estilos.actionButtonText}>{salvando ? 'Salvando...' : 'Salvar Perfil'}</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={[estilos.actionButton, estilos.secondaryButton]} onPress={() => setEditando(false)}>
+                <TouchableOpacity style={[estilos.actionButton, estilos.secondaryButton, estilos.actionButtonHalf]} onPress={() => setEditando(false)}>
                   <Text style={estilos.secondaryButtonText}>Cancelar</Text>
                 </TouchableOpacity>
               </View>
             </View>
           ) : (
             <View style={estilos.infoPanel}>
-              <View style={estilos.infoCard}>
-                <Text style={estilos.infoLabel}>Nome</Text>
-                <Text style={estilos.infoValue}>{nomeCompleto || 'Não informado'}</Text>
+              <View style={estilos.infoCards}>
+                <View style={estilos.infoCard}>
+                  <Text style={estilos.infoLabel}>Nome</Text>
+                  <Text style={estilos.infoValue}>{nomeCompleto || 'Não informado'}</Text>
+                </View>
+                <View style={estilos.infoCard}>
+                  <Text style={estilos.infoLabel}>CEP</Text>
+                  <Text style={estilos.infoValue}>{perfil.cep || 'Não informado'}</Text>
+                </View>
+                <View style={estilos.infoCard}>
+                  <Text style={estilos.infoLabel}>Endereço</Text>
+                  <Text style={estilos.infoValue}>{perfil.rua || 'Não informado'}</Text>
+                </View>
               </View>
-              <View style={estilos.infoCard}>
-                <Text style={estilos.infoLabel}>CEP</Text>
-                <Text style={estilos.infoValue}>{perfil.cep || 'Não informado'}</Text>
+              <View style={estilos.footerAction}>
+                <TouchableOpacity style={[estilos.actionButton, estilos.primaryButton]} onPress={() => setEditando(true)}>
+                  <Text style={estilos.actionButtonText}>Editar perfil</Text>
+                </TouchableOpacity>
               </View>
-              <View style={estilos.infoCard}>
-                <Text style={estilos.infoLabel}>Endereço</Text>
-                <Text style={estilos.infoValue}>{perfil.rua || 'Não informado'}</Text>
-              </View>
-              <TouchableOpacity style={[estilos.actionButton, estilos.primaryButton]} onPress={() => setEditando(true)}>
-                <Text style={estilos.actionButtonText}>Editar perfil</Text>
-              </TouchableOpacity>
             </View>
           )}
         </View>
@@ -385,14 +404,21 @@ const estilos = StyleSheet.create({
     marginBottom: 14,
   },
   backButton: {
-    width: 34,
-    height: 34,
-    borderRadius: 17,
-    backgroundColor: '#fff',
+    width: 44,
+    height: 44,
+    borderRadius: 14,
+    backgroundColor: '#FFEFDC',
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: '#f3d4b0',
+    marginBottom: 12,
+  },
+  logoutButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 14,
+    backgroundColor: '#FF0000',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   backButtonText: {
     fontSize: 18,
@@ -448,37 +474,45 @@ const estilos = StyleSheet.create({
     color: '#2d2a24',
     marginTop: 6,
     fontFamily: 'Luckiest Guy',
+    display: 'none',
   },
   photoActionsRow: {
-    marginTop: 12,
+    marginTop: 16,
     flexDirection: 'row',
+    justifyContent: 'space-between',
     gap: 10,
-    justifyContent: 'center',
-    flexWrap: 'wrap',
   },
   photoActionButton: {
+    flex: 1,
     backgroundColor: '#f37910',
     paddingVertical: 10,
-    paddingHorizontal: 18,
     borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: 42,
   },
   photoActionText: {
     color: '#fff',
     fontWeight: '700',
     fontFamily: 'Lalezar',
+    fontSize: 14,
   },
   removePhotoButton: {
+    flex: 1,
     backgroundColor: '#fff',
     borderWidth: 1,
     borderColor: '#f37910',
     paddingVertical: 10,
-    paddingHorizontal: 18,
     borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: 42,
   },
   removePhotoText: {
     color: '#f37910',
     fontWeight: '700',
     fontFamily: 'Lalezar',
+    fontSize: 14,
   },
   photoButtonText: {
     color: '#fff',
@@ -488,7 +522,15 @@ const estilos = StyleSheet.create({
     paddingTop: 2,
   },
   infoPanel: {
+    flex: 1,
+    justifyContent: 'space-between',
     gap: 10,
+  },
+  infoCards: {
+    gap: 10,
+  },
+  footerAction: {
+    marginTop: 20,
   },
   infoCard: {
     borderRadius: 18,
@@ -543,6 +585,15 @@ const estilos = StyleSheet.create({
   actionArea: {
     marginTop: 10,
   },
+  actionAreaRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: 10,
+    marginTop: 10,
+  },
+  actionButtonHalf: {
+    flex: 1,
+  },
   actionButton: {
     borderRadius: 18,
     paddingVertical: 14,
@@ -560,7 +611,6 @@ const estilos = StyleSheet.create({
   },
   actionButtonText: {
     color: '#fff',
-    fontWeight: '700',
     fontSize: 16,
     fontFamily: 'Lalezar',
   },
@@ -571,7 +621,6 @@ const estilos = StyleSheet.create({
   },
   secondaryButtonText: {
     color: '#f37910',
-    fontWeight: '700',
     fontSize: 14,
     fontFamily: 'Lalezar',
   },

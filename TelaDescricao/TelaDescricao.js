@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -7,9 +7,10 @@ import {
   Image,
   Dimensions,
   TouchableOpacity,
+  Animated,
 } from 'react-native';
 import Entypo from '@expo/vector-icons/Entypo';
-import Feather from '@expo/vector-icons/Feather';
+import AntDesign from '@expo/vector-icons/AntDesign';
 
 const { width } = Dimensions.get('window');
 
@@ -33,6 +34,18 @@ export default function TelaDescricao({ navigation, route }) {
 
   const imagenesCarrosel = imagens.length > 0 ? imagens : ['https://via.placeholder.com/300'];
   const precoVenda = Number(String(produto.preco || 0).replace(',', '.'));
+
+  // Criar animação contínua sincronizada com o scroll
+  const scrollX = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    const listener = scrollX.addListener(({ value }) => {
+      const page = Math.round(value / width);
+      setIndex(page);
+    });
+
+    return () => scrollX.removeListener(listener);
+  }, [scrollX]);
 
   const optionsTotal = selectedOptions.reduce((sum, id) => {
     const option = OPTIONALS.find((item) => item.id === id);
@@ -67,30 +80,65 @@ export default function TelaDescricao({ navigation, route }) {
     <View style={styles.container}>
       <View style={styles.whitePanel}>
         <View style={styles.topRow}>
-          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.iconBack}>
-            <Feather name="arrow-left-circle" size={28} color="#632713" />
+          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+            <AntDesign name="arrowleft" size={22} color="#231815" />
           </TouchableOpacity>
           <View style={{ flex: 1 }} />
         </View>
 
         <View style={styles.carouselWrap}>
-          <ScrollView
+          <Animated.ScrollView
             ref={scrollRef}
             horizontal
             pagingEnabled
             showsHorizontalScrollIndicator={false}
             onMomentumScrollEnd={onMomentumScrollEnd}
+            scrollEventThrottle={16}
+            onScroll={Animated.event(
+              [{ nativeEvent: { contentOffset: { x: scrollX } } }],
+              { useNativeDriver: false }
+            )}
           >
             {imagenesCarrosel.map((src, i) => (
               <View style={styles.imageSlide} key={i}>
                 {renderImage(src)}
               </View>
             ))}
-          </ScrollView>
+          </Animated.ScrollView>
           <View style={styles.indicators}>
-            {imagenesCarrosel.map((_, i) => (
-              <View key={i} style={[styles.dot, i === index ? styles.dotActive : null]} />
-            ))}
+            {imagenesCarrosel.map((_, i) => {
+              const dotWidth = scrollX.interpolate({
+                inputRange: [
+                  (i - 1) * width,
+                  i * width,
+                  (i + 1) * width,
+                ],
+                outputRange: [8, 24, 8],
+                extrapolate: 'clamp',
+              });
+              const dotBackgroundColor = scrollX.interpolate({
+                inputRange: [
+                  (i - 1) * width,
+                  i * width,
+                  (i + 1) * width,
+                ],
+                outputRange: ['#eee', '#EC6426', '#eee'],
+                extrapolate: 'clamp',
+              });
+
+              return (
+                <Animated.View
+                  key={i}
+                  style={[
+                    styles.dot,
+                    {
+                      width: dotWidth,
+                      backgroundColor: dotBackgroundColor,
+                    },
+                  ]}
+                />
+              );
+            })}
           </View>
         </View>
 
@@ -115,24 +163,28 @@ export default function TelaDescricao({ navigation, route }) {
             {OPTIONALS.map((item) => {
               const isSelected = selectedOptions.includes(item.id);
               return (
-                <View style={styles.optionCard} key={item.id}>
+                <TouchableOpacity
+                  style={[styles.optionCard, isSelected && styles.optionCardSelected]}
+                  key={item.id}
+                  activeOpacity={0.8}
+                  onPress={() => toggleOption(item.id)}
+                >
                   <Image source={item.imagem} style={styles.optionImage} resizeMode="cover" />
                   <View style={styles.optionTextWrap}>
                     <Text style={styles.optionName}>{item.nome}</Text>
                     <View style={styles.optionRight}>
-                      <TouchableOpacity
+                      <View
                         style={[
                           styles.optionSelectButton,
                           isSelected && styles.optionSelectButtonActive,
                         ]}
-                        onPress={() => toggleOption(item.id)}
                       >
                         {isSelected ? <View style={styles.optionSelectDot} /> : null}
-                      </TouchableOpacity>
+                      </View>
                       <Text style={styles.optionPriceSmall}>+ R$ {item.preco.toFixed(2)}</Text>
                     </View>
                   </View>
-                </View>
+                </TouchableOpacity>
               );
             })}
           </View>
@@ -181,19 +233,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingTop: 12,
   },
-  iconBack: {
-    width: 28,
-    height: 28,
+  backButton: {
+    width: 44,
+    height: 44,
     borderRadius: 14,
-    backgroundColor: '#FDE3CF',
+    backgroundColor: '#FFEFDC',
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.08,
-    shadowRadius: 4,
-    elevation: 2,
   },
   carouselWrap: {
     height: 220,
@@ -268,8 +315,7 @@ const styles = StyleSheet.create({
   },
   optionsTitle: {
     fontSize: 14,
-    color: '#632713',
-    fontWeight: '700',
+    color: '#632713', 
     fontFamily: 'Lalezar',
   },
   optionsOptional: {
@@ -383,7 +429,6 @@ const styles = StyleSheet.create({
   },
   addButtonText: {
     color: '#fff',
-    fontWeight: '700',
     fontFamily: 'Lalezar',
     fontSize: 14,
   },
