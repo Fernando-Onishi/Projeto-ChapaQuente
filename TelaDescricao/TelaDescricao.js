@@ -8,9 +8,13 @@ import {
   Dimensions,
   TouchableOpacity,
   Animated,
+  Alert,
 } from 'react-native';
 import Entypo from '@expo/vector-icons/Entypo';
 import AntDesign from '@expo/vector-icons/AntDesign';
+import { onAuthStateChanged } from 'firebase/auth';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { auth, db } from '../Config/FireBaseConfig';
 
 const { width } = Dimensions.get('window');
 
@@ -25,6 +29,8 @@ export default function TelaDescricao({ navigation, route }) {
   const [index, setIndex] = useState(0);
   const [quantity, setQuantity] = useState(1);
   const [selectedOptions, setSelectedOptions] = useState([]);
+  const [favorites, setFavorites] = useState([]);
+  const [userUid, setUserUid] = useState(null);
   const produto = route?.params?.produto || {};
 
   const imagens = [];
@@ -53,6 +59,47 @@ export default function TelaDescricao({ navigation, route }) {
   }, 0);
 
   const totalPrice = ((precoVenda * quantity) + optionsTotal).toFixed(2);
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (user?.uid) {
+        setUserUid(user.uid);
+        try {
+          const userDoc = await getDoc(doc(db, 'users', user.uid));
+          const data = userDoc.exists() ? userDoc.data() : {};
+          setFavorites(Array.isArray(data.favorites) ? data.favorites : []);
+        } catch (error) {
+          console.warn('Erro ao carregar favoritos:', error);
+        }
+      } else {
+        setUserUid(null);
+        setFavorites([]);
+      }
+    });
+
+    return unsubscribe;
+  }, []);
+
+  const produtoAdicionado = produto?.id ? favorites.some((item) => item?.id === produto.id) : false;
+
+  const handleAddFavorite = async () => {
+    if (!userUid) {
+      Alert.alert('Atenção', 'Faça login para salvar favoritos.');
+      return;
+    }
+
+    const nextFavorites = produtoAdicionado
+      ? favorites.filter((item) => item?.id !== produto.id)
+      : [...favorites, { ...produto, id: produto.id }];
+
+    setFavorites(nextFavorites);
+
+    try {
+      await setDoc(doc(db, 'users', userUid), { favorites: nextFavorites }, { merge: true });
+    } catch (error) {
+      console.warn('Erro ao atualizar favoritos:', error);
+    }
+  };
 
   const toggleOption = (optionId) => {
     setSelectedOptions((prev) =>
@@ -202,8 +249,13 @@ export default function TelaDescricao({ navigation, route }) {
           </TouchableOpacity>
         </View>
 
-        <TouchableOpacity style={styles.addButton} onPress={() => {}}>
-          <Text style={styles.addButtonText}>Adicionar</Text>
+        <TouchableOpacity
+          style={[styles.addButton, produtoAdicionado && styles.addButtonAdded]}
+          onPress={handleAddFavorite}
+        >
+          <Text style={styles.addButtonText}>
+            {produtoAdicionado ? 'Adicionado' : 'Adicionar'}
+          </Text>
         </TouchableOpacity>
 
         <View style={styles.totalBox}>
@@ -426,6 +478,9 @@ const styles = StyleSheet.create({
     marginHorizontal: 8,
     backgroundColor: '#EC6426',
     borderRadius: 18,
+  },
+  addButtonAdded: {
+    backgroundColor: '#28a745',
   },
   addButtonText: {
     color: '#fff',
