@@ -1,11 +1,12 @@
 ﻿import React, { useEffect, useState } from 'react';
-import { View, StyleSheet, Text, TouchableOpacity, ScrollView, FlatList, Dimensions, Image, Alert } from 'react-native';
+import { View, StyleSheet, Text, TouchableOpacity, Pressable, ScrollView, FlatList, Dimensions, Image, Alert } from 'react-native';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import AntDesign from '@expo/vector-icons/AntDesign';
 import SimpleLineIcons from '@expo/vector-icons/SimpleLineIcons';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useIsFocused } from '@react-navigation/native';
 import { signOut, onAuthStateChanged } from 'firebase/auth';
-import { collection, doc, getDoc, onSnapshot } from 'firebase/firestore';
+import { collection, doc, getDoc, onSnapshot, setDoc } from 'firebase/firestore';
 import { auth, db } from '../Config/FireBaseConfig';
 
 export default function TelaHome({ navigation }) {
@@ -17,6 +18,9 @@ export default function TelaHome({ navigation }) {
   const { width } = Dimensions.get('window');
   const cardWidth = Math.round(width * 0.42);
   const [favorites, setFavorites] = useState([]);
+  const [userUid, setUserUid] = useState(null);
+  const isFocused = useIsFocused();
+  const favoritosProdutos = produtos.filter((produto) => favorites.includes(produto.id));
 
   const obterProdutoDestaque = () => {
     return produtos.find(
@@ -27,12 +31,42 @@ export default function TelaHome({ navigation }) {
     );
   };
 
-  const toggleFavorite = (label) => {
-    setFavorites((prev) => {
-      if (prev.includes(label)) return prev.filter((l) => l !== label);
-      return [...prev, label];
-    });
+  const handleFavoritePress = async (itemId) => {
+    const nextFavorites = favorites.includes(itemId)
+      ? favorites.filter((id) => id !== itemId)
+      : [...favorites, itemId];
+
+    setFavorites(nextFavorites);
+
+    if (userUid) {
+      const favoritosAtualizados = produtos.filter((produto) => nextFavorites.includes(produto.id));
+      try {
+        await setDoc(doc(db, 'users', userUid), { favorites: favoritosAtualizados }, { merge: true });
+      } catch (error) {
+        console.warn('Erro ao salvar favoritos:', error);
+      }
+    }
   };
+
+  useEffect(() => {
+    if (!userUid || !isFocused) return;
+
+    const refreshFavorites = async () => {
+      try {
+        const userDoc = await getDoc(doc(db, 'users', userUid));
+        const data = userDoc.exists() ? userDoc.data() : {};
+        setFavorites(
+          Array.isArray(data.favorites)
+            ? data.favorites.map((item) => item?.id).filter(Boolean)
+            : []
+        );
+      } catch (error) {
+        console.warn('Erro ao recarregar favoritos:', error);
+      }
+    };
+
+    refreshFavorites();
+  }, [userUid, isFocused]);
 
   useEffect(() => {
     const unsubscribeProdutos = onSnapshot(
@@ -71,22 +105,28 @@ export default function TelaHome({ navigation }) {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user?.uid) {
+        setUserUid(user.uid);
+
         try {
           const userDoc = await getDoc(doc(db, 'users', user.uid));
-          if (userDoc.exists()) {
-            setUserName(userDoc.data().name || 'Usuário');
-            setUserPhoto(userDoc.data().foto || userDoc.data().fotoUrl || user.photoURL || null);
-          } else {
-            setUserName('Usuário');
-            setUserPhoto(user.photoURL || null);
-          }
+          const data = userDoc.exists() ? userDoc.data() : {};
+          setUserName(data.name || 'Usuário');
+          setUserPhoto(data.foto || data.fotoUrl || user.photoURL || null);
+          setFavorites(
+            Array.isArray(data.favorites)
+              ? data.favorites.map((item) => item?.id).filter(Boolean)
+              : []
+          );
         } catch (error) {
           setUserName('Usuário');
           setUserPhoto(user?.photoURL || null);
+          setFavorites([]);
         }
       } else {
+        setUserUid(null);
         setUserName('Usuário');
         setUserPhoto(null);
+        setFavorites([]);
       }
     });
 
@@ -156,8 +196,8 @@ export default function TelaHome({ navigation }) {
     const badge = getDiscountBadge(item);
 
     return (
-      <TouchableOpacity onPress={() => navigation.navigate('TelaDescricao', { produto: item })} activeOpacity={0.8}>
-        <View style={[styles.card, { width, marginRight: 10 }] }>
+      <Pressable onPress={() => navigation.navigate('TelaDescricao', { produto: item })} style={{ width, marginRight: 10 }}>
+        <View style={[styles.card, { width } ]}>
           <View style={styles.imagePlaceholder}>
             {renderizarImagem(item)}
             {badge ? (
@@ -169,20 +209,20 @@ export default function TelaHome({ navigation }) {
           <View style={styles.cardInfo}>
             <View style={styles.priceRow}>
               <Text style={styles.cardPriceLarge}>R$ {precoFormatado}</Text>
-              <TouchableOpacity style={styles.favoriteButtonSmall} onPress={() => toggleFavorite(item.id)}>
+              <Pressable style={styles.favoriteButtonSmall} onPress={() => handleFavoritePress(item.id)}>
                 <AntDesign
                   name={favorites.includes(item.id) ? 'heart' : 'hearto'}
                   size={18}
                   color={favorites.includes(item.id) ? '#e0245e' : '#231815'}
                 />
-              </TouchableOpacity>
+              </Pressable>
             </View>
             {precoAntigo ? <Text style={styles.cardPriceOld}>R$ {precoAntigo}</Text> : null}
             {economize ? <Text style={styles.saveText}>Economize R$ {economize}</Text> : null}
             <Text style={styles.cardLabel}>{item.nome}</Text>
           </View>
         </View>
-      </TouchableOpacity>
+      </Pressable>
     );
   };
 
@@ -273,7 +313,11 @@ export default function TelaHome({ navigation }) {
       />
 
       <View style={styles.bottomBar}>
-        <TouchableOpacity style={styles.bottomButton} activeOpacity={0.75} onPress={() => navigation.navigate('TelaFavorito')}>
+        <TouchableOpacity
+          style={styles.bottomButton}
+          activeOpacity={0.75}
+          onPress={() => navigation.navigate('TelaFavorito', { favoritos: favoritosProdutos })}
+        >
           <FontAwesome name="heart" size={28} color="#fff" />
         </TouchableOpacity>
         <TouchableOpacity

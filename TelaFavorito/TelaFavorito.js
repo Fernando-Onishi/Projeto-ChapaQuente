@@ -1,78 +1,124 @@
-﻿import React from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, Image } from 'react-native';
+import { useIsFocused } from '@react-navigation/native';
+import { onAuthStateChanged } from 'firebase/auth';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
 import Feather from '@expo/vector-icons/Feather';
+import AntDesign from '@expo/vector-icons/AntDesign';
+import { auth, db } from '../Config/FireBaseConfig';
 
-const PRODUTOS_FAVORITOS = [
-  {
-    id: '1',
-    nome: 'Curto-Circuito',
-    preco: 'R$ 38,00',
-    precoAntigo: 'R$ 42,00',
-    desc: 'Um brownie denso de chocolate meio amargo, com interior super macio.',
-    imagem: require('../assets/brownie.png'),
-  },
-  {
-    id: '2',
-    nome: 'Brasa Viva',
-    preco: 'R$ 42,00',
-    desc: 'Triplo burger bovino grelhado no fogo, bacon crocante e molho barbecue.',
-    imagem: require('../assets/hamburguer.png'),
-  },
-  {
-    id: '3',
-    nome: 'Fusão Nuclear',
-    preco: 'R$ 48,00',
-    desc: 'Duplo burger bovino, cheddar derretido em dobro e cebola caramelizada.',
-    imagem: require('../assets/hamburguer2.png'),
-  },
-  {
-    id: '4',
-    nome: 'Chapa Fria',
-    preco: 'R$ 16,00',
-    precoAntigo: 'R$ 24,00',
-    desc: 'Massa cremosa batida com morangos frescos selecionados e pedaços reais da fruta.',
-    imagem: require('../assets/sorvete.png'),
-  },
-];
+export default function TelaFavorito({ navigation, route }) {
+  const [favoritos, setFavoritos] = useState(route.params?.favoritos ?? []);
+  const [userUid, setUserUid] = useState(null);
+  const isFocused = useIsFocused();
 
-export default function TelaFavorito({ navigation }) {
-  const renderItem = ({ item }) => (
-    <View style={styles.cardProduto}>
-      <View style={styles.imagemWrapper}>
-        <Image source={item.imagem} style={styles.imagemProduto} resizeMode="contain" />
-      </View>
-      <View style={styles.infoProduto}>
-        <Text style={styles.nomeProduto}>{item.nome}</Text>
-        <Text style={styles.descProduto}>{item.desc}</Text>
-        <View style={styles.precoContainer}>
-          <Text style={styles.precoProduto}>{item.preco}</Text>
-          {item.precoAntigo ? (
-            <Text style={styles.precoAntigoProduto}>{item.precoAntigo}</Text>
-          ) : null}
+  useEffect(() => {
+    if (route.params?.favoritos) {
+      setFavoritos(route.params.favoritos);
+    }
+  }, [route.params?.favoritos]);
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      setUserUid(user?.uid ?? null);
+    });
+
+    return unsubscribe;
+  }, []);
+
+  useEffect(() => {
+    if (!isFocused || !userUid) return;
+    if (route.params?.favoritos) return;
+
+    const syncFavorites = async () => {
+      try {
+        const userDoc = await getDoc(doc(db, 'users', userUid));
+        if (userDoc.exists()) {
+          const data = userDoc.data();
+          if (Array.isArray(data.favorites)) {
+            setFavoritos(data.favorites);
+          }
+        }
+      } catch (error) {
+        console.warn('Erro ao carregar favoritos:', error);
+      }
+    };
+
+    syncFavorites();
+  }, [isFocused, userUid, route.params?.favoritos]);
+
+  const formatPrice = (value) => {
+    const normalized = String(value).replace(',', '.').replace(/[^0-9.]/g, '');
+    const parsed = parseFloat(normalized);
+    return Number.isNaN(parsed) ? 'R$ 0,00' : `R$ ${parsed.toFixed(2).replace('.', ',')}`;
+  };
+
+  const getEconomia = (preco, precoAntigo) => {
+    const current = parseFloat(String(preco).replace(',', '.').replace(/[^0-9.]/g, ''));
+    const original = parseFloat(String(precoAntigo).replace(',', '.').replace(/[^0-9.]/g, ''));
+    if (Number.isNaN(current) || Number.isNaN(original) || original <= current) return null;
+    const diff = (original - current).toFixed(2).replace('.', ',');
+    return `Economize R$ ${diff}`;
+  };
+
+  const handleRemoveFavorite = async (itemId) => {
+    const nextFavorites = favoritos.filter((item) => item.id !== itemId);
+    setFavoritos(nextFavorites);
+
+    if (userUid) {
+      try {
+        await setDoc(doc(db, 'users', userUid), { favorites: nextFavorites }, { merge: true });
+      } catch (error) {
+        console.warn('Erro ao atualizar favoritos:', error);
+      }
+    }
+  };
+
+  const renderItem = ({ item }) => {
+    const imageSource = typeof item.imagem === 'string' ? { uri: item.imagem } : item.imagem;
+    const precoAtual = item.preco || item.precoAtual || item.price || '0';
+    const precoAntigo = item.precoAntigo || item.precoOld || item.originalPrice || null;
+    const economia = getEconomia(precoAtual, precoAntigo);
+
+    return (
+      <View style={styles.cardProduto}>
+        <View style={styles.imagemWrapper}>
+          <Image source={imageSource} style={styles.imagemProduto} resizeMode="contain" />
         </View>
+        <View style={styles.infoProduto}>
+          <Text style={styles.nomeProduto}>{item.nome || item.name || 'Produto'}</Text>
+          <View style={styles.precoRow}>
+            <Text style={styles.precoProduto}>{formatPrice(precoAtual)}</Text>
+            {precoAntigo ? (
+              <Text style={styles.precoAntigoProduto}>{formatPrice(precoAntigo)}</Text>
+            ) : null}
+          </View>
+          {economia ? <Text style={styles.economiaTexto}>{economia}</Text> : null}
+        </View>
+        <TouchableOpacity style={styles.removeButton} onPress={() => handleRemoveFavorite(item.id)}>
+          <Feather name="x" size={28} color="#e0245e" />
+        </TouchableOpacity>
       </View>
-      <View style={styles.coracaoIcon}>
-        <Text style={styles.coracaoIconText}>♥</Text>
-      </View>
-    </View>
-  );
+    );
+  };
 
   return (
     <View style={styles.container}>
       <View style={styles.whitePanel}>
         <View style={styles.header}>
-          <TouchableOpacity style={styles.botaoVoltar} onPress={() => navigation.goBack()}>
-            <Feather name="arrow-left-circle" size={28} color="#632713" />
+          <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+            <AntDesign name="arrowleft" size={22} color="#231815" />
           </TouchableOpacity>
           <Text style={styles.titulo}>FAVORITOS</Text>
+          <View style={{ width: 44, height: 44 }} />
         </View>
 
         <FlatList
-          data={PRODUTOS_FAVORITOS}
-          keyExtractor={item => item.id}
+          data={favoritos}
+          keyExtractor={(item) => item.id}
           renderItem={renderItem}
           contentContainerStyle={styles.listaContainer}
-          ListEmptyComponent={<Text style={styles.listaVazia}>Nenhum favorito ainda... 😢</Text>}
+          ListEmptyComponent={<Text style={styles.listaVazia}>Lista de Favoritos vazia...</Text>}
         />
       </View>
     </View>
@@ -94,29 +140,18 @@ const styles = StyleSheet.create({
     paddingTop: 24,
   },
   header: {
-    flexDirection: 'column',
-    alignItems: 'flex-start',
-    justifyContent: 'flex-start',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     marginBottom: 20,
   },
-  botaoVoltar: {
-    width: 28,
-    height: 28,
+  backButton: {
+    width: 44,
+    height: 44,
     borderRadius: 14,
-    backgroundColor: '#FDE3CF',
+    backgroundColor: '#FFEFDC',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.08,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  textoBotaoVoltar: {
-    color: '#632713',
-    fontSize: 20,
-    fontWeight: 'bold',
   },
   titulo: {
     fontSize: 32,
@@ -128,13 +163,28 @@ const styles = StyleSheet.create({
   listaContainer: {
     paddingBottom: 20,
   },
+  removeButton: {
+    width: 42,
+    height: 42,
+    borderRadius: 18,
+    backgroundColor: '#fff',
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.12,
+    shadowRadius: 6,
+    elevation: 4,
+  },
   cardProduto: {
     backgroundColor: '#FDE3CF',
-    padding: 16,
-    borderRadius: 16,
+    padding: 18,
+    borderRadius: 20,
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: 14,
+    borderWidth: 1,
+    borderColor: '#EC6426',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
@@ -142,19 +192,19 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   imagemWrapper: {
-    width: 92,
-    height: 92,
-    borderRadius: 12,
+    width: 126,
+    height: 126,
+    borderRadius: 22,
     backgroundColor: '#fff',
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 12,
+    marginRight: 14,
     marginLeft: -12,
     overflow: 'hidden',
   },
   imagemProduto: {
-    width: 72,
-    height: 72,
+    width: 116,
+    height: 116,
   },
   infoProduto: {
     flex: 1,
@@ -163,34 +213,34 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   nomeProduto: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: 'bold',
     color: '#000',
-    marginBottom: 10,
+    marginBottom: 8,
     fontFamily: 'Luckiest Guy',
   },
-  descProduto: {
-    fontSize: 14,
-    color: '#555',
-    marginBottom: 10,
-    lineHeight: 20,
-    fontFamily: 'Lora',
-  },
-  precoContainer: {
+  precoRow: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'flex-start',
   },
   precoProduto: {
-    fontSize: 16,
-    fontWeight: 'bold',
+    fontSize: 20,
+    fontWeight: '900',
     color: '#EC6426',
-    marginRight: 10,
+    marginRight: 4,
     fontFamily: 'Lalezar',
   },
   precoAntigoProduto: {
     fontSize: 14,
-    color: '#000',
+    color: '#8a8a8a',
     textDecorationLine: 'line-through',
+    fontFamily: 'Lora',
+  },
+  economiaTexto: {
+    fontSize: 14,
+    color: '#28a745',
+    marginTop: 6,
     fontFamily: 'Lora',
   },
   coracaoIcon: {
