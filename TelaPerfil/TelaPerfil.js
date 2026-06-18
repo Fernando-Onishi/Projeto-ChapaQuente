@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
 import Ionicons from '@expo/vector-icons/Ionicons';
+import Entypo from '@expo/vector-icons/Entypo';
 import { auth as autenticacao, db as bancoDados } from '../Config/FireBaseConfig';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { updateProfile, signOut } from 'firebase/auth';
@@ -247,7 +248,7 @@ export default function TelaPerfil({ navigation }) {
         <View style={[estilos.card, { minHeight: windowHeight - 24 }]}> 
           <View style={estilos.cardHeader}>
             <TouchableOpacity style={estilos.backButton} onPress={() => navigation.goBack()}>
-              <AntDesign name="arrowleft" size={22} color="#231815" />
+              <Entypo name="chevron-left" size={32} color="#231815" />
             </TouchableOpacity>
             <Text style={estilos.title}>Meu perfil</Text>
             <TouchableOpacity style={estilos.logoutButton} onPress={sair}>

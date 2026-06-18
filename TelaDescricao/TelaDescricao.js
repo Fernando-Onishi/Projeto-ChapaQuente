@@ -128,7 +128,7 @@ export default function TelaDescricao({ navigation, route }) {
       <View style={styles.whitePanel}>
         <View style={styles.topRow}>
           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-            <AntDesign name="arrowleft" size={22} color="#231815" />
+            <Entypo name="chevron-left" size={32} color="#231815" />
           </TouchableOpacity>
           <View style={{ flex: 1 }} />
         </View>

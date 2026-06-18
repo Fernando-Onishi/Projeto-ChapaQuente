@@ -20,6 +20,7 @@ import {
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { AntDesign } from '@expo/vector-icons';
 import Entypo from '@expo/vector-icons/Entypo';
+import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { db } from '../Config/FireBaseConfig';
 import { collection, onSnapshot, addDoc, doc, deleteDoc, updateDoc } from 'firebase/firestore';
 
@@ -429,7 +430,7 @@ export default function TelaAdministrador({ navigation }) {
       <View style={estilos.surface}>
         <View style={estilos.header}>
           <TouchableOpacity style={estilos.backButton} onPress={() => navigation.goBack()}>
-            <AntDesign name="arrowleft" size={22} color="#231815" />
+            <Entypo name="chevron-left" size={32} color="#231815" />
           </TouchableOpacity>
           <Text style={estilos.tituloTela}>Gerenciar Produtos</Text>
         </View>
@@ -668,10 +669,10 @@ export default function TelaAdministrador({ navigation }) {
             <Entypo name="home" size={36} color="white" />
           </TouchableOpacity>
           <TouchableOpacity style={estilos.bottomButtonPrimary} activeOpacity={0.85} onPress={() => navigation.navigate('TelaAdmin')}>
-            <AntDesign name="plus" size={30} color="black" />
+            <AntDesign name="plus" size={36} color="black" />
           </TouchableOpacity>
           <TouchableOpacity style={estilos.bottomButton} activeOpacity={0.75} onPress={() => navigation.navigate('TelaFavorito')}>
-            <AntDesign name="heart" size={36} color="white" />
+            <FontAwesome name="heart" size={36} color="white" />
           </TouchableOpacity>
         </View>
       </View>
@@ -1201,3 +1202,4 @@ const estilos = StyleSheet.create({
     fontWeight: '700',
   },
 });
+  

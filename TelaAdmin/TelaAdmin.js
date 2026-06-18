@@ -12,6 +12,7 @@ import {
   Modal,
 } from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
+import Entypo from '@expo/vector-icons/Entypo';
 import { useNavigation } from '@react-navigation/native';
 import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
 import { db } from '../Config/FireBaseConfig';
@@ -189,7 +190,7 @@ export default function TelaAdmin() {
       <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
         <View style={styles.card}>
           <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-            <AntDesign name="arrowleft" size={22} color="#231815" />
+            <Entypo name="chevron-left" size={32} color="#231815" />
           </TouchableOpacity>
 
           <Text style={styles.title}>PAINEL DE ADMINISTRATIVO</Text>

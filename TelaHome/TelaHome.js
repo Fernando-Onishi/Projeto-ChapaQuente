@@ -2,7 +2,7 @@
 import { View, StyleSheet, Text, TouchableOpacity, Pressable, ScrollView, FlatList, Dimensions, Image, Alert } from 'react-native';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import AntDesign from '@expo/vector-icons/AntDesign';
-import SimpleLineIcons from '@expo/vector-icons/SimpleLineIcons';
+import Entypo from '@expo/vector-icons/Entypo';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useIsFocused } from '@react-navigation/native';
 import { signOut, onAuthStateChanged } from 'firebase/auth';
@@ -211,9 +211,10 @@ export default function TelaHome({ navigation }) {
               <Text style={styles.cardPriceLarge}>R$ {precoFormatado}</Text>
               <Pressable style={styles.favoriteButtonSmall} onPress={() => handleFavoritePress(item.id)}>
                 <AntDesign
-                  name={favorites.includes(item.id) ? 'heart' : 'hearto'}
+                  name="heart"
                   size={18}
-                  color={favorites.includes(item.id) ? '#e0245e' : '#231815'}
+                  color={favorites.includes(item.id) ? '#e0245e' : ''}
+                  fill="none"
                 />
               </Pressable>
             </View>
@@ -266,7 +267,7 @@ export default function TelaHome({ navigation }) {
                 navigation.navigate('TelaDescricao', { produto: produtoDestaque });
               }}>
                 <Text style={styles.promoButtonText}>Ver mais</Text>
-                <SimpleLineIcons name="arrow-right" size={14} color="#fff" style={{ marginLeft: 10 }} />
+                <Entypo name="chevron-right" size={18} color="#fff" style={{ marginLeft: 10 }} />
               </TouchableOpacity>
             </View>
             <Image
@@ -318,17 +319,17 @@ export default function TelaHome({ navigation }) {
           activeOpacity={0.75}
           onPress={() => navigation.navigate('TelaFavorito', { favoritos: favoritosProdutos })}
         >
-          <FontAwesome name="heart" size={28} color="#fff" />
+          <FontAwesome name="heart" size={36} color="#fff" />
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.bottomButtonPrimary}
           activeOpacity={0.85}
           onPress={() => navigation.navigate('TelaAdmin')}
         >
-          <AntDesign name="plus" size={28} color="#1f1f1f" />
+          <AntDesign name="plus" size={36} color="#1f1f1f" />
         </TouchableOpacity>
         <TouchableOpacity style={styles.bottomButton} activeOpacity={0.75} onPress={() => navigation.navigate('TelaAdministrador')}>
-          <FontAwesome name="gear" size={28} color="#fff" />
+          <FontAwesome name="gear" size={36} color="#fff" />
         </TouchableOpacity>
       </View>
     </ScrollView>

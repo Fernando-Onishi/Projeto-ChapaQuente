@@ -5,6 +5,7 @@ import { onAuthStateChanged } from 'firebase/auth';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import Feather from '@expo/vector-icons/Feather';
 import AntDesign from '@expo/vector-icons/AntDesign';
+import Entypo from '@expo/vector-icons/Entypo';
 import { auth, db } from '../Config/FireBaseConfig';
 
 export default function TelaFavorito({ navigation, route }) {
@@ -107,7 +108,7 @@ export default function TelaFavorito({ navigation, route }) {
       <View style={styles.whitePanel}>
         <View style={styles.header}>
           <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-            <AntDesign name="arrowleft" size={22} color="#231815" />
+            <Entypo name="chevron-left" size={32} color="#231815" />
           </TouchableOpacity>
           <Text style={styles.titulo}>FAVORITOS</Text>
           <View style={{ width: 44, height: 44 }} />
